@@ -5,6 +5,7 @@ import Footer from '../components/Footer';
 import EnrollModal from '../components/EnrollModal';
 import PrivateGPT from '../components/PrivateGPT';
 import { motion } from 'framer-motion';
+import SEO from '../components/SEO';
 import esgHero from '../assets/role_woman.png'; // Placeholder for ESG context
 import esgDetail from '../assets/role_manager.png'; // Placeholder for detail
 
@@ -18,6 +19,10 @@ const ESGProgramme = () => {
 
   return (
     <div className="min-h-screen bg-white">
+      <SEO 
+        title="ESG Programme | Corporate Sustainability" 
+        description="Master Environmental, Social, and Governance (ESG) frameworks with Regenesys. Empower your organization with sustainable strategic value."
+      />
       <TopBar onEnrollClick={toggleModal} />
       <Navbar onEnrollClick={toggleModal} />
 

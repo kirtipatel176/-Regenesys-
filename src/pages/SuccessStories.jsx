@@ -6,6 +6,7 @@ import EnrollModal from '../components/EnrollModal';
 import PrivateGPT from '../components/PrivateGPT';
 import { motion } from 'framer-motion';
 import { Star } from 'lucide-react';
+import SEO from '../components/SEO';
 
 const caseStudies = [
   {
@@ -112,6 +113,10 @@ const SuccessStories = () => {
 
   return (
     <div className="min-h-screen bg-white">
+      <SEO 
+        title="Success Stories & Case Studies" 
+        description="Explore how Regenesys has transformed leadership teams and upskilled technical workforces across diverse industries through real-world case studies."
+      />
       <TopBar onEnrollClick={toggleModal} />
       <Navbar onEnrollClick={toggleModal} />
 

@@ -5,6 +5,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { Calendar, User, Search, ArrowRight, ChevronDown } from 'lucide-react';
 import { motion } from 'framer-motion';
+import SEO from '../components/SEO';
 
 const blogs = [
   {
@@ -39,6 +40,10 @@ const blogs = [
 const Blogs = () => {
   return (
     <div className="min-h-screen bg-white">
+      <SEO 
+        title="Corporate Education Blog" 
+        description="Stay updated with the latest trends in corporate training, upskilling, and executive leadership from Regenesys experts."
+      />
       <TopBar />
       <Navbar />
       

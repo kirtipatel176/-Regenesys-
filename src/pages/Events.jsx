@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { Calendar, MapPin, Play, ArrowRight, ChevronDown, Share2, Users, BookOpen, Building2, HeartPulse, Landmark, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
+import SEO from '../components/SEO';
 
 const featuredSeries = [
   { 
@@ -77,6 +78,10 @@ const Events = () => {
 
   return (
     <div className="min-h-screen bg-white">
+      <SEO 
+        title="Corporate Events & Webinars" 
+        description="Join our exclusive corporate webinars and event series focused on HR trends, digital transformation, and leadership excellence."
+      />
       <TopBar />
       <Navbar />
       
