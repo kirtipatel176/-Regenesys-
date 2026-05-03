@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
 
 @import "tailwindcss";
 @config "../tailwind.config.js";
@@ -35,22 +35,33 @@
   transform: rotate(180deg);
 }
 
-/* Custom Scrollbar */
+/* ═══ Custom Scrollbar — Subtle & Professional ═══ */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #f8f7f4;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #c0392b;
-  border-radius: 4px;
+  background: #bfc8d6;
+  border-radius: 100px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #922b21;
+  background: #1a237e;
 }
 
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #bfc8d6 transparent;
+}
+
+/* ═══ Text Selection — Brand Gold ═══ */
 ::selection {
-  background: #c0392b;
-  color: #fff;
+  background: #1a237e;
+  color: #ffd700;
+}
+::-moz-selection {
+  background: #1a237e;
+  color: #ffd700;
 }

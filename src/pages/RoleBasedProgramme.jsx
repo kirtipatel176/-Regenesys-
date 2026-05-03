@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Check, ChevronRight, MessageCircle } from 'lucide-react';
+import { Check, ChevronRight, MessageCircle, Target, Lightbulb, Trophy } from 'lucide-react';
 import heroBanner from '../assets/role_hero.png';
 import overviewImg from '../assets/role_overview.png';
 import managerImg from '../assets/role_manager.png';
@@ -33,146 +33,184 @@ const RoleBasedProgramme = () => {
       <TopBar onEnrollClick={toggleModal} />
       <Navbar onEnrollClick={toggleModal} />
       
-      <main>
-        {/* Hero Section */}
-        <section className="relative h-[440px] flex items-center overflow-hidden">
-          <img src={heroBanner} alt="Hero" className="absolute inset-0 w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-r from-regenesys-navy via-regenesys-navy/40 to-transparent" />
-          <div className="relative z-10 px-20">
+      <main className="pt-20 lg:pt-0">
+        {/* Hero Section - Refined Premium Style */}
+        <section className="relative min-h-[400px] lg:h-[600px] flex items-center overflow-hidden bg-regenesys-navy">
+          <img src={heroBanner} alt="Hero" className="absolute inset-0 w-full h-full object-cover opacity-60" />
+          <div className="absolute inset-0 bg-gradient-to-r from-regenesys-navy via-regenesys-navy/60 to-transparent" />
+          
+          <div className="relative z-10 px-6 lg:px-24 max-w-7xl mx-auto w-full">
             <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-white"
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+              className="text-white max-w-3xl"
             >
-              <h1 className="font-head text-[44px] font-bold leading-tight mb-2 uppercase">Empowering</h1>
-              <h2 className="font-head text-[44px] font-bold leading-tight mb-4">
-                <span className="text-white">ROLES, EMPOWERING </span>
-                <span className="text-regenesys-gold-light">RESULTS.</span>
-              </h2>
-              <p className="text-xl font-medium tracking-wide">through Role-Based Programme</p>
+              <div className="flex items-center gap-2 mb-6">
+                <div className="h-px w-12 bg-regenesys-gold" />
+                <span className="text-regenesys-gold font-bold text-[12px] uppercase tracking-[0.3em]">Corporate Excellence</span>
+              </div>
+              <h1 className="font-head text-[36px] lg:text-[72px] font-bold leading-[1.1] mb-6">
+                Empowering <span className="text-regenesys-gold-light italic">Roles.</span><br/>
+                Empowering Results.
+              </h1>
+              <p className="text-[16px] lg:text-[20px] font-medium text-white/80 max-w-xl leading-relaxed mb-10">
+                A groundbreaking corporate education initiative designed to bridge the gap between academic knowledge and industrial expertise.
+              </p>
+              <button 
+                onClick={toggleModal}
+                className="bg-white text-regenesys-navy px-10 py-4 rounded-full font-bold text-[14px] hover:bg-regenesys-red hover:text-white transition-all shadow-2xl active:scale-95"
+              >
+                ENROL NOW
+              </button>
             </motion.div>
           </div>
         </section>
 
-        {/* ... (rest of the sections remain same, just ensure indentation is correct) ... */}
-        {/* Programme Overview */}
-        <section className="py-20 px-20">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div className="reveal">
-              <div className="rounded-2xl overflow-hidden shadow-premium-lg">
-                <img src={overviewImg} alt="Overview" className="w-full h-full object-cover" />
-              </div>
-            </div>
-            <div className="reveal">
-              <h2 className="font-head text-[38px] text-regenesys-navy font-bold leading-tight mb-6">Role-Based Programme Overview</h2>
-              <p className="text-[15px] text-regenesys-muted leading-relaxed mb-6">
-                Our corporate programmes are tailored to meet the professional development needs of employees at all levels in your organisation. These programmes are designed to enhance skills, foster leadership, and drive innovation within the corporate environment. This programme, which incorporates real-world case studies through a hands-on approach, boosts individual performance and competency and drives overall organisational growth and success. Invest in targeted employee development to achieve your strategic goals and maintain a competitive edge in the market.
-              </p>
-              <div className="space-y-3">
-                <div className="text-[14px] font-bold text-regenesys-navy">Key Features:</div>
-                {[
-                  "Customised learning modules",
-                  "Industry-relevant curriculum",
-                  "Interactive and practical training",
-                  "Professional certification",
-                  "Access to expert mentors and industry leaders"
-                ].map((f, i) => (
-                  <div key={i} className="flex items-center gap-2.5 text-[14px] text-regenesys-muted">
-                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                    {f}
+        {/* Programme Overview - Better Balance */}
+        <section className="py-24 lg:py-32 px-6 lg:px-24">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+              <div className="reveal">
+                <div className="relative">
+                  <div className="absolute -top-4 -left-4 w-24 h-24 bg-regenesys-gold/10 rounded-full -z-10" />
+                  <div className="rounded-3xl overflow-hidden shadow-premium-2xl">
+                    <img src={overviewImg} alt="Overview" className="w-full h-full object-cover" />
                   </div>
-                ))}
+                </div>
+              </div>
+              <div className="reveal">
+                <h2 className="font-head text-[32px] lg:text-[44px] text-regenesys-navy font-bold leading-tight mb-8">Role-Based Programme Overview</h2>
+                <p className="text-[15px] lg:text-[16px] text-regenesys-muted leading-relaxed mb-8">
+                  Our programmes are tailored to meet the professional development needs of employees at all levels. We focus on fostering leadership and driving innovation through real-world case studies and a hands-on approach.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10">
+                  {[
+                    "Customised learning modules",
+                    "Industry-relevant curriculum",
+                    "Interactive training",
+                    "Expert Mentorship"
+                  ].map((f, i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <div className="w-5 h-5 rounded-full bg-[#f0f9f4] flex items-center justify-center">
+                        <div className="w-2 h-2 rounded-full bg-[#008444]" />
+                      </div>
+                      <span className="text-[14px] font-bold text-regenesys-navy/80">{f}</span>
+                    </div>
+                  ))}
+                </div>
+                <button className="text-regenesys-navy font-bold text-[15px] border-b-2 border-regenesys-gold pb-1 hover:text-regenesys-red hover:border-regenesys-red transition-all">Explore Modules</button>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Alternating Sub-Sections */}
-        <section className="py-20 px-20 space-y-32">
+        {/* Role Sections - Modern Alternating Layout */}
+        <section className="py-24 lg:py-32 px-6 lg:px-24 bg-[#fafafa] space-y-32">
           <RoleSection 
             tag="First Time Managers"
-            title="Overview"
-            desc="This programme cultivates strong leadership skills among emerging and potential organisational leaders. It focuses on execution excellence, effectiveness, productivity, assertiveness, people skills, and decision-making abilities."
+            title="Emerging Leaders Programme"
+            desc="Cultivate strong leadership skills among emerging leaders. Focus on execution excellence, effectiveness, and people management."
             img={managerImg}
-            modules={["Strategic Leadership", "Effective Communication", "Decision Making and Problem-Solving", "Change Management", "Emotional Intelligence"]}
-            highlights={["Real-world case studies", "Leadership simulations", "Mentorship from industry leaders", "Certification upon completion"]}
+            modules={["Strategic Leadership", "Effective Communication", "Decision Making", "Change Management"]}
+            highlights={["Case Studies", "Simulations", "Mentorship"]}
           />
 
           <RoleSection 
             tag="Women Leadership"
-            title="Overview"
-            desc="This programme addresses unique challenges women face in leadership roles, enhancing their ability to lead effectively and drive organisational success. Employees will gain insights into strategic thinking, communication, and emotional intelligence while also benefiting from a supportive network of peers and mentors."
+            title="Breaking the Glass Ceiling"
+            desc="Addressing unique challenges women face in leadership roles, enhancing their ability to lead effectively and drive success."
             img={womanImg}
             reversed
-            modules={["Strategic Leadership for Women", "Effective Communication", "Emotional Intelligence", "Work-Life Integration", "Mentorship and Networking"]}
-            highlights={["Interactive Workshops", "Real-World Case Studies", "Leadership Simulations", "Certification Upon Completion", "Access to Expert Mentors"]}
-            tagColor="bg-red-500"
+            modules={["Strategic Thinking", "Emotional Intelligence", "Work-Life Integration"]}
+            highlights={["Supportive Network", "Peer Learning", "Expert Mentors"]}
+            tagColor="bg-regenesys-red"
           />
 
           <RoleSection 
-            tag="Role-Based Functional Skills"
-            title="Overview"
-            desc="This technical skills programme is designed to keep your employees up-to-date with technological advancements. It covers various technical skills essential for today's dynamic work environment."
+            tag="Functional Skills"
+            title="Technical Excellence"
+            desc="Keep your employees up-to-date with technological advancements and essential technical skills for the modern workplace."
             img={techImg}
-            modules={["Business Finance", "Entrepreneurship", "A/B Testing", "Experimentation", "Digital Transformation Programme", "Key Account Management", "Sales Skills", "Hiring Skills"]}
-            highlights={["Role Based Training", "Networking Opportunities", "Expert Led Sessions", "Certification Upon Completion"]}
+            modules={["Business Finance", "Digital Transformation", "Sales Skills", "Hiring Skills"]}
+            highlights={["Expert Led Sessions", "Certification", "Networking"]}
           />
         </section>
 
-        {/* Why Partner with Us */}
-        <section className="py-20 px-20 bg-regenesys-off">
-          <h2 className="font-head text-[38px] text-regenesys-navy font-bold text-center mb-16">Why Partner with Us?</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <PartnerCard icon="📋" text="100% hands-on-training for organisations to learn how to automate tasks" />
-            <PartnerCard icon="👥" text="Customised learning specific to the business objectives of your organisation" />
-            <PartnerCard icon="🔍" text="Best Case studies from different industries, including the Big Four." />
+        {/* Why Partner with Us - Icon Grid */}
+        <section className="py-24 lg:py-32 px-6 lg:px-24">
+          <div className="max-w-7xl mx-auto">
+            <h2 className="font-head text-[32px] lg:text-[44px] text-regenesys-navy font-bold text-center mb-20">Why Partner with Us?</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+              <PartnerCard icon={Target} title="100% Hands-on" text="Real-world training focused on task automation and practical results." />
+              <PartnerCard icon={Lightbulb} title="Customised Learning" text="Bespoke curriculum specific to your business objectives and goals." />
+              <PartnerCard icon={Trophy} title="Top Tier Cases" text="Learning from Big Four case studies and global industry leaders." />
+            </div>
           </div>
         </section>
 
-        {/* Our Approach */}
-        <section className="py-20 px-20">
-          <h2 className="font-head text-[38px] text-regenesys-navy font-bold text-center mb-16">Our Approach</h2>
-          <div className="flex flex-col lg:flex-row gap-px bg-regenesys-border h-[400px]">
-            <div className="flex-[2] bg-blue-600 p-10 flex flex-col justify-end text-white relative">
-              <div className="text-[12px] font-mono mb-2">LEARNING</div>
-              <p className="text-[13px] opacity-80">To Familiarise the workforce with key concepts and frameworks</p>
+        {/* Our Theory of Change - Official Methodology */}
+        <section className="py-24 lg:py-32 px-6 lg:px-24 bg-regenesys-navy text-white overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-full h-full opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+          
+          <div className="max-w-7xl mx-auto relative z-10">
+            <h2 className="font-head text-[32px] lg:text-[44px] font-bold text-center mb-6">Our Theory of Change</h2>
+            <p className="text-center text-white/60 mb-20 max-w-2xl mx-auto">Innovative teaching methods that set industry standards foster exceptional engagement and create tangible real-world impact.</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              {[
+                { phase: "01", title: "LEARNING", desc: "To get familiar with key concepts and frameworks." },
+                { phase: "02", title: "APPLICATION", desc: "To consistently practise and track growth with rituals and actions." },
+                { phase: "03", title: "EXPERIENCE", desc: "To deeply engage through memorable tools and immersions." },
+                { phase: "04", title: "COACHING", desc: "To personalise growth with individual plans and support." },
+                { phase: "05", title: "REINFORCEMENT", desc: "To ensure learning sticks through post-program boosters." }
+              ].map((step, i) => (
+                <div key={i} className={`p-8 rounded-2xl flex flex-col justify-between border h-[320px] transition-all group cursor-default ${i === 0 ? 'bg-white/10 border-white/20' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}>
+                  <div className={`text-[10px] font-mono font-bold tracking-[0.2em] uppercase ${i === 0 ? 'text-regenesys-gold' : 'text-white/30'}`}>Phase {step.phase}</div>
+                  <div>
+                    <h4 className="text-xl font-bold mb-4 group-hover:text-regenesys-gold transition-colors">{step.title}</h4>
+                    <p className="text-sm text-white/60 leading-relaxed">{step.desc}</p>
+                  </div>
+                </div>
+              ))}
             </div>
-            {["APPLICATION", "EXPERIENCE", "REINFORCEMENT", "NUDGING"].map((step, i) => (
-              <div key={i} className="flex-1 bg-white p-6 flex items-center justify-center relative group hover:bg-regenesys-navy transition-colors">
-                <div className="absolute top-6 right-6 text-gray-300 group-hover:text-white transition-colors">↑</div>
-                <div className="vertical-text font-bold text-gray-400 group-hover:text-white transition-colors tracking-[4px]">{step}</div>
-              </div>
-            ))}
           </div>
         </section>
 
-        {/* FAQ Section */}
-        <section className="py-20 px-20 bg-regenesys-off">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-            <div className="reveal">
-              <div className="bg-blue-600 text-white text-[10px] font-bold px-3 py-1 rounded-full inline-block mb-4 uppercase tracking-widest">FAQS</div>
-              <h2 className="font-head text-[44px] font-bold text-regenesys-navy leading-tight mb-6">Frequently Asked Questions</h2>
-              <p className="text-[15px] text-regenesys-muted mb-8">Find answers to commonly asked questions about role-based programme & its impact on employees & employers</p>
-              <div className="flex gap-4">
-                <button className="bg-blue-600 text-white px-6 py-2.5 rounded-lg text-[13px] font-bold hover:bg-blue-700 transition-colors">Talk To Us →</button>
-                <button className="border border-regenesys-border px-6 py-2.5 rounded-lg text-[13px] font-bold text-regenesys-muted hover:bg-white transition-colors">Contact Us</button>
-              </div>
+        {/* FAQ - Clean Design */}
+        <section className="py-24 lg:py-32 px-6 lg:px-24 bg-white">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-16">
+              <span className="text-[11px] font-bold text-regenesys-red uppercase tracking-widest bg-regenesys-red/5 px-4 py-2 rounded-full">Support Center</span>
+              <h2 className="font-head text-[32px] lg:text-[44px] text-regenesys-navy font-bold mt-6 mb-4">Frequently Asked Questions</h2>
+              <p className="text-regenesys-muted">Everything you need to know about our programmes and impact.</p>
             </div>
-            <div className="reveal space-y-4">
+            <div className="space-y-4">
               <FAQItem question="What is the Role-Based Programme?" answer="The Role-Based Programme is designed to equip employees with essential Functional skills for today's dynamic work environment." active />
               <FAQItem question="Who should enrol in this programme?" />
               <FAQItem question="What is the structure of the training modules?" />
-              <FAQItem question="Do participants from organisations receive any certification upon completion?" />
+              <FAQItem question="Do participants receive any certification?" />
             </div>
           </div>
         </section>
 
-        {/* CTA Footer */}
-        <section className="py-20 px-20 bg-blue-600 text-center text-white relative overflow-hidden">
+        {/* CTA Banner - High Contrast */}
+        <section className="py-20 lg:py-32 px-6 lg:px-24 bg-regenesys-red text-center text-white relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-full opacity-20" style={{ backgroundImage: 'linear-gradient(45deg, #000 25%, transparent 25%, transparent 50%, #000 50%, #000 75%, transparent 75%, transparent)' , backgroundSize: '100px 100px' }} />
           <div className="relative z-10">
-            <h2 className="font-head text-[34px] font-bold mb-4">Let's Get In Touch And Have A Discussion</h2>
-            <p className="opacity-80 mb-10">Deliver faster, collaborate better and innovate more effectively.</p>
-            <button className="bg-white text-blue-600 px-10 py-3 rounded-full font-bold text-[14px] hover:bg-blue-50 transition-colors">Contact us →</button>
+            <h2 className="font-head text-[28px] lg:text-[48px] font-bold mb-6">Ready to Transform Your Team?</h2>
+            <p className="text-lg text-white/80 mb-12 max-w-2xl mx-auto">Let's discuss how we can tailor our programmes to your specific organisational needs.</p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button 
+                onClick={toggleModal}
+                className="bg-white text-regenesys-red px-12 py-4 rounded-full font-bold text-[15px] hover:bg-regenesys-navy hover:text-white transition-all shadow-2xl"
+              >
+                Contact Us Now
+              </button>
+              <button className="bg-transparent border-2 border-white px-12 py-4 rounded-full font-bold text-[15px] hover:bg-white hover:text-regenesys-red transition-all">
+                Talk To Experts
+              </button>
+            </div>
           </div>
         </section>
       </main>
@@ -185,33 +223,33 @@ const RoleBasedProgramme = () => {
 };
 
 const RoleSection = ({ tag, title, desc, img, reversed, modules, highlights, tagColor = "bg-blue-600" }) => (
-  <div className={`grid grid-cols-1 lg:grid-cols-2 gap-16 items-center ${reversed ? 'lg:flex-row-reverse' : ''}`}>
-    <div className={`reveal ${reversed ? 'lg:order-2' : ''}`}>
-      <div className="flex items-center gap-3 mb-4">
-        <div className={`p-1.5 ${tagColor} rounded-md text-white`}><MessageCircle size={16} /></div>
-        <div className={`text-sm font-bold ${tagColor.replace('bg-','text-')}`}>{tag}</div>
+  <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+    <div className={`reveal ${reversed ? 'lg:order-2' : 'lg:order-1'}`}>
+      <div className="flex items-center gap-3 mb-6">
+        <div className={`w-8 h-8 ${tagColor} rounded-lg text-white flex items-center justify-center shadow-lg`}><MessageCircle size={16} /></div>
+        <div className={`text-[12px] font-black uppercase tracking-widest ${tagColor.replace('bg-','text-')}`}>{tag}</div>
       </div>
-      <h3 className="font-head text-[28px] text-regenesys-navy font-bold mb-4">{title}</h3>
-      <p className="text-[14px] text-regenesys-muted leading-relaxed mb-8">{desc}</p>
+      <h3 className="font-head text-[32px] lg:text-[40px] text-regenesys-navy font-bold leading-tight mb-6">{title}</h3>
+      <p className="text-[15px] lg:text-[16px] text-regenesys-muted leading-relaxed mb-10">{desc}</p>
       
-      <div className="grid grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 border-t border-gray-100 pt-10">
         <div>
-          <div className="text-[13px] font-bold text-regenesys-navy mb-3">Modules:</div>
-          <ul className="space-y-2">
+          <div className="text-[13px] font-black text-regenesys-navy uppercase tracking-widest mb-4">Core Modules</div>
+          <ul className="space-y-3">
             {modules.map((m, i) => (
-              <li key={i} className="flex items-start gap-2 text-[12px] text-regenesys-muted">
-                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0" />
+              <li key={i} className="flex items-start gap-3 text-[13px] text-regenesys-muted font-medium">
+                <div className="w-1.5 h-1.5 rounded-full bg-regenesys-gold mt-1.5 shrink-0" />
                 {m}
               </li>
             ))}
           </ul>
         </div>
         <div>
-          <div className="text-[13px] font-bold text-regenesys-navy mb-3">Highlights:</div>
-          <ul className="space-y-2">
+          <div className="text-[13px] font-black text-regenesys-navy uppercase tracking-widest mb-4">Impact Points</div>
+          <ul className="space-y-3">
             {highlights.map((h, i) => (
-              <li key={i} className="flex items-start gap-2 text-[12px] text-regenesys-muted">
-                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0" />
+              <li key={i} className="flex items-start gap-3 text-[13px] text-regenesys-muted font-medium">
+                <Check size={14} className="text-[#008444] mt-1 shrink-0" strokeWidth={3} />
                 {h}
               </li>
             ))}
@@ -219,29 +257,37 @@ const RoleSection = ({ tag, title, desc, img, reversed, modules, highlights, tag
         </div>
       </div>
     </div>
-    <div className={`reveal ${reversed ? 'lg:order-1' : ''}`}>
-      <div className="rounded-2xl overflow-hidden shadow-premium">
-        <img src={img} alt={tag} className="w-full h-full object-cover aspect-[4/3]" />
+    <div className={`reveal ${reversed ? 'lg:order-1' : 'lg:order-2'}`}>
+      <div className="relative group">
+        <div className={`absolute inset-0 ${tagColor} opacity-10 rounded-[40px] translate-x-4 translate-y-4 -z-10 transition-transform duration-500 group-hover:translate-x-2 group-hover:translate-y-2`} />
+        <div className="rounded-[40px] overflow-hidden shadow-premium-2xl relative aspect-[4/3]">
+          <img src={img} alt={tag} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700 scale-105 group-hover:scale-100" />
+        </div>
       </div>
     </div>
   </div>
 );
 
-const PartnerCard = ({ icon, text }) => (
-  <div className="bg-white p-8 rounded-2xl border border-regenesys-border hover:shadow-premium transition-all reveal">
-    <div className="text-3xl mb-4">{icon}</div>
-    <p className="text-[13px] text-regenesys-muted leading-relaxed font-medium">{text}</p>
+const PartnerCard = ({ icon: Icon, title, text }) => (
+  <div className="bg-white p-10 rounded-3xl border border-gray-100 hover:border-regenesys-gold hover:shadow-premium-xl transition-all duration-500 reveal group">
+    <div className="w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center mb-8 group-hover:bg-regenesys-gold transition-all duration-500">
+      <Icon size={32} className="text-regenesys-navy group-hover:text-white transition-colors" />
+    </div>
+    <h4 className="text-xl font-bold text-regenesys-navy mb-4">{title}</h4>
+    <p className="text-[14px] text-regenesys-muted leading-relaxed font-medium">{text}</p>
   </div>
 );
 
 const FAQItem = ({ question, answer, active }) => (
-  <div className="bg-white border border-regenesys-border rounded-xl overflow-hidden">
-    <div className="px-6 py-4 flex items-center justify-between cursor-pointer group">
-      <div className="text-[14px] font-bold text-regenesys-navy group-hover:text-blue-600 transition-colors">{question}</div>
-      <div className="text-regenesys-muted">{active ? '-' : '+'}</div>
+  <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+    <div className="px-8 py-6 flex items-center justify-between cursor-pointer group">
+      <div className="text-[15px] lg:text-[16px] font-bold text-regenesys-navy group-hover:text-regenesys-red transition-colors">{question}</div>
+      <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${active ? 'bg-regenesys-red text-white rotate-180' : 'bg-gray-50 text-gray-400'}`}>
+        {active ? '-' : '+'}
+      </div>
     </div>
     {active && answer && (
-      <div className="px-6 pb-4 text-[13px] text-regenesys-muted leading-relaxed">
+      <div className="px-8 pb-6 text-[14px] lg:text-[15px] text-regenesys-muted leading-relaxed border-t border-gray-50 pt-4">
         {answer}
       </div>
     )}

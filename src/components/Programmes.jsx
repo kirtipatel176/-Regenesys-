@@ -1,109 +1,131 @@
 import React from 'react';
 import { ArrowRight, Laptop, BarChart3, Database, BrainCircuit, GraduationCap, Trophy, Leaf } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 const programs = [
   {
-    icon: <Database className="text-blue-600" />,
+    id: "01",
+    icon: <Database size={24} />,
     title: "Role Based Programmes",
-    items: [
-      "Training specific job roles to maximise relevance & impact.",
-      "Develop precise skills & knowledge required for each role."
-    ]
+    path: "/programmes/role-based",
+    desc: "Training specific job roles to maximise relevance & impact. Develop precise skills required for each function."
   },
   {
-    icon: <BarChart3 className="text-blue-600" />,
+    id: "02",
+    icon: <BarChart3 size={24} />,
     title: "Data Zen Master",
-    items: [
-      "Advanced data analytics & visualisation techniques to drive business insights.",
-      "Expertise in data governance, security, & ethical considerations.",
-      "Skills to leverage big data technologies for strategic decision-making."
-    ]
+    path: "/programmes/data-zen-master",
+    desc: "Advanced data analytics & visualisation techniques. Expertise in data governance, security, & big data."
   },
   {
-    icon: <Laptop className="text-blue-600" />,
+    id: "03",
+    icon: <Laptop size={24} />,
     title: "Technology Stack",
-    items: [
-      "Foundational and advanced industry-relevant topics in the current technology stack.",
-      "Hands-on training in using cutting-edge tools & frameworks for development.",
-      "Best practices in system architecture, integration, & maintenance."
-    ]
+    path: "/programmes/technology-stack",
+    desc: "Foundational and advanced industry-relevant topics in current technology stack. Hands-on tools & frameworks."
   },
   {
-    icon: <BrainCircuit className="text-blue-600" />,
+    id: "04",
+    icon: <BrainCircuit size={24} />,
     title: "Gen AI Academy",
-    items: [
-      "Integration of generative AI tools to optimise business processes.",
-      "AI-driven solutions to enhance data analysis and decision-making.",
-      "Practical knowledge of implementing AI strategies across business functions."
-    ]
+    path: "/programmes/gen-ai-academy",
+    desc: "Integration of generative AI tools to optimise business processes. AI-driven solutions to enhance data analysis."
   },
   {
-    icon: <GraduationCap className="text-blue-600" />,
-    title: "Fresher's Talent Transformation Programme",
-    items: [
-      "Equip fresh graduates with essential technical & soft skills.",
-      "Hands-on projects & simulations to apply academic knowledge in the real world.",
-      "Mentorship from industry experts to guide early career development."
-    ]
+    id: "05",
+    icon: <GraduationCap size={24} />,
+    title: "Fresher's Talent Transformation",
+    path: "/programmes/freshers-talent-transformation",
+    desc: "Equip fresh graduates with essential technical & soft skills. Hands-on projects & industry mentorship."
   },
   {
-    icon: <Trophy className="text-blue-600" />,
+    id: "06",
+    icon: <Trophy size={24} />,
     title: "Leadership Mastery Suite",
-    items: [
-      "Enhanced strategic thinking & decision-making skills for aspiring leaders.",
-      "Advanced communication and team management abilities.",
-      "Foster innovation & adaptability to lead effectively in dynamic business environments."
-    ]
+    path: "/programmes/leadership-mastery",
+    desc: "Enhanced strategic thinking & decision-making for aspiring leaders. Foster innovation & adaptability."
   },
   {
-    icon: <Leaf className="text-blue-600" />,
-    title: "ESG",
-    items: [
-      "Training to Master the essentials of sustainability",
-      "Drive impactful change with practical ESG strategies.",
-      "Lead with a global perspective on environmental and social governance."
-    ]
+    id: "07",
+    icon: <Leaf size={24} />,
+    title: "ESG Programme",
+    path: "/programmes/esg",
+    desc: "Master the essentials of sustainability. Lead with a global perspective on environmental & social governance."
   }
 ];
 
 const Programmes = () => {
   return (
-    <section id="programmes" className="py-20 px-10">
-      <div className="text-center mb-16">
-        <div className="text-[11px] font-mono uppercase tracking-[2px] text-regenesys-red mb-2.5">Our Programmes</div>
-        <h2 className="font-head text-4xl text-regenesys-navy font-bold leading-tight mb-4">Programmes Designed For Organisational Success</h2>
-        <p className="text-[15px] text-regenesys-muted leading-relaxed max-w-3xl mx-auto">
-          Our high-impact bespoke programmes are designed to provide a rich learning experience and to achieve the desired business outcomes in a constantly evolving landscape.
-        </p>
-      </div>
+    <section id="programmes" className="py-24 lg:py-32 px-6 lg:px-10 bg-white">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-20 lg:mb-24">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            className="text-[14px] font-black uppercase tracking-[0.2em] text-regenesys-red mb-6 flex items-center justify-center gap-3"
+          >
+            <span className="w-8 h-[2px] bg-regenesys-red" /> Our Programmes <span className="w-8 h-[2px] bg-regenesys-red" />
+          </motion.div>
+          <h2 className="font-head text-[36px] lg:text-[52px] text-regenesys-navy font-bold leading-tight mb-8">
+            7 Flagship Programmes
+          </h2>
+          <p className="text-[16px] lg:text-[18px] text-gray-500 max-w-3xl mx-auto leading-relaxed">
+            Our high-impact bespoke programmes are designed to provide a rich learning experience and to achieve the desired business outcomes in a constantly evolving landscape.
+          </p>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-        {programs.map((prog, i) => (
-          <div key={i} className="bg-white border border-regenesys-border rounded-xl p-8 flex flex-col hover:shadow-premium transition-all duration-300 reveal group">
-            <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center mb-6 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
-              {prog.icon}
-            </div>
-            
-            <h3 className="text-[16px] font-bold text-regenesys-navy mb-4 h-12 flex items-center">{prog.title}</h3>
-            
-            <ul className="space-y-3 mb-8 flex-1">
-              {prog.items.map((item, idx) => (
-                <li key={idx} className="text-[13px] text-regenesys-muted pl-4 relative leading-relaxed">
-                  <span className="absolute left-0 text-blue-500 font-bold">•</span>
-                  {item}
-                </li>
-              ))}
-            </ul>
-            
-            <Link 
-              to={prog.title === "Role Based Programmes" ? "/programmes/role-based" : "#"} 
-              className="text-blue-600 text-[13px] font-bold flex items-center gap-1.5 hover:gap-2.5 transition-all"
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8">
+          {programs.map((prog, i) => (
+            <motion.div 
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+              className="group relative bg-[#fafbfc] rounded-[2rem] p-8 lg:p-10 border border-gray-100 hover:bg-regenesys-navy hover:text-white transition-all duration-500 flex flex-col h-full overflow-hidden shadow-sm hover:shadow-premium-xl"
             >
-              Learn More <ArrowRight size={16} />
-            </Link>
-          </div>
-        ))}
+              {/* Number Background */}
+              <div className="absolute top-4 right-8 text-[80px] font-black text-black/[0.03] group-hover:text-white/[0.05] transition-colors leading-none">
+                {prog.id}
+              </div>
+
+              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-8 shadow-sm group-hover:bg-regenesys-red group-hover:text-white transition-all duration-500 relative z-10">
+                {prog.icon}
+              </div>
+              
+              <h3 className="text-[18px] lg:text-[20px] font-bold mb-6 relative z-10 leading-tight">
+                {prog.title}
+              </h3>
+              
+              <p className="text-[14px] leading-relaxed opacity-70 mb-10 flex-1 relative z-10">
+                {prog.desc}
+              </p>
+              
+              <Link 
+                to={prog.path} 
+                className="inline-flex items-center gap-2 font-black text-[12px] uppercase tracking-wider group-hover:gap-3 transition-all relative z-10"
+              >
+                Learn More <ArrowRight size={18} className="text-regenesys-red group-hover:text-white transition-colors" />
+              </Link>
+
+              {/* Decorative Circle */}
+              <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-regenesys-red rounded-full opacity-0 group-hover:opacity-10 transition-all duration-700 blur-2xl" />
+            </motion.div>
+          ))}
+          
+          {/* Custom CTA Card */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            className="bg-regenesys-red rounded-[2rem] p-8 lg:p-10 text-white flex flex-col justify-center items-center text-center shadow-xl shadow-red-500/20"
+          >
+            <h3 className="text-[20px] lg:text-[24px] font-bold mb-6">Need a Bespoke Solution?</h3>
+            <p className="text-[14px] text-white/80 mb-8 leading-relaxed">We customize our programmes to meet your unique organizational challenges.</p>
+            <button className="bg-white text-regenesys-navy px-8 py-3 rounded-xl font-bold text-[14px] hover:bg-regenesys-navy hover:text-white transition-all shadow-lg">
+              Contact Us
+            </button>
+          </motion.div>
+        </div>
       </div>
     </section>
   );
