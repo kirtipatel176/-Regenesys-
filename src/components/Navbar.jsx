@@ -12,9 +12,18 @@ const Navbar = ({ onEnrollClick }) => {
   const { user } = useAuth();
   
   const isHomePage = location.pathname === '/';
-  const hasDarkHero = isHomePage || 
-                    location.pathname.includes('programmes') || 
-                    location.pathname.includes('contact');
+  const darkHeroPages = [
+    '/',
+    '/contact',
+    '/programmes/role-based',
+    '/programmes/data-zen-master',
+    '/programmes/technology-stack',
+    '/programmes/gen-ai-academy',
+    '/programmes/freshers-talent-transformation',
+    '/programmes/leadership-mastery'
+  ];
+
+  const hasDarkHero = darkHeroPages.includes(location.pathname);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
