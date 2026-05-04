@@ -1,4 +1,3 @@
-import React from 'react';
 import { GraduationCap, Globe, Lightbulb } from 'lucide-react';
 
 const features = [

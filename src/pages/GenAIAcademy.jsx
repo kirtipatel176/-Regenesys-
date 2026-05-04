@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Check, BrainCircuit, Sparkles, Zap, Bot, MessageCircle } from 'lucide-react';
+import { BrainCircuit, Sparkles, Zap, Bot } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import EnrollModal from '../components/EnrollModal';
-import PrivateGPT from '../components/PrivateGPT';
 
 const GenAIAcademy = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -130,7 +129,7 @@ const GenAIAcademy = () => {
 
       <Footer />
       <EnrollModal isOpen={isModalOpen} onClose={toggleModal} />
-      <PrivateGPT />
+      
     </div>
   );
 };

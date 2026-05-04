@@ -1,24 +1,21 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState } from 'react';
 
 const AuthContext = createContext(null);
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const stored = localStorage.getItem('regenesys_user');
+  const [user, setUser] = useState(() => {
+    const stored = typeof window !== 'undefined' ? localStorage.getItem('regenesys_user') : null;
     if (stored) {
       try {
-        setUser(JSON.parse(stored));
+        return JSON.parse(stored);
       } catch {
         localStorage.removeItem('regenesys_user');
       }
     }
-    setLoading(false);
-  }, []);
+  });
 
   const signup = (name, email, password) => {
     // Get existing users
@@ -78,7 +75,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, login, signup, logout }}>
       {children}
     </AuthContext.Provider>
   );

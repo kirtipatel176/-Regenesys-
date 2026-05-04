@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronDown, Menu, X, Sparkles, LogIn } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -45,7 +45,7 @@ const Navbar = ({ onEnrollClick }) => {
   
   return (
     <nav className={`fixed left-0 right-0 z-[1000] px-6 lg:px-12 flex items-center transition-all duration-500 
-      ${isScrolled ? 'top-0 h-16 bg-white shadow-premium-lg border-b border-gray-100' : 'top-[44px] lg:top-10 h-20 lg:h-20 bg-transparent'}`}>
+      ${isScrolled ? 'top-0 h-16 bg-white shadow-premium-lg border-b border-gray-100' : 'top-[var(--topbar-height)] lg:top-[var(--topbar-height-desktop)] h-20 lg:h-20 bg-transparent'}`}>
       
       <Link to="/" className="flex items-center gap-3">
         <div className="relative group">

@@ -1,4 +1,3 @@
-import React from 'react';
 import aboutImg from '../assets/about.png';
 import { CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';

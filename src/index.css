@@ -3,6 +3,12 @@
 @import "tailwindcss";
 @config "../tailwind.config.js";
 
+:root {
+  --topbar-height: 44px;
+  --topbar-height-desktop: 40px;
+}
+
+
 @layer base {
   html {
     scroll-behavior: smooth;

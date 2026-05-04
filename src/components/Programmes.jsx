@@ -1,4 +1,3 @@
-import React from 'react';
 import { ArrowRight, Laptop, BarChart3, Database, BrainCircuit, GraduationCap, Trophy, Leaf } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
