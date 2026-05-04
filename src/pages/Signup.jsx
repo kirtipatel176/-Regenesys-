@@ -1,8 +1,10 @@
+
 import React, { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Eye, EyeOff, ShieldCheck, UserPlus, Mail, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, ShieldCheck, Mail, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+
 
 const Signup = () => {
   const { signup } = useAuth();
