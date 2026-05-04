@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import TopBar from '../components/TopBar';
 import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
@@ -9,7 +9,6 @@ import Lifecycle from '../components/Lifecycle';
 import TheoryOfChange from '../components/TheoryOfChange';
 import Footer from '../components/Footer';
 import EnrollModal from '../components/EnrollModal';
-import PrivateGPT from '../components/PrivateGPT';
 import SEO from '../components/SEO';
 import { motion } from 'framer-motion';
 import { ArrowRight, Quote, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -159,7 +158,6 @@ function Home() {
       <Footer />
 
       <EnrollModal isOpen={isModalOpen} onClose={toggleModal} />
-      <PrivateGPT />
     </div>
   );
 }

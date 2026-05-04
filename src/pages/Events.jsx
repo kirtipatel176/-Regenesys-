@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import TopBar from '../components/TopBar';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { Calendar, MapPin, Play, ArrowRight, ChevronDown, Share2, Users, BookOpen, Building2, HeartPulse, Landmark, ShieldCheck } from 'lucide-react';
+import { MapPin, Play, ArrowRight, Building2, HeartPulse, Landmark, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 import SEO from '../components/SEO';
 
@@ -69,7 +69,7 @@ const webinars = [
 const Events = () => {
   const [activeSpeaker, setActiveSpeaker] = useState(2);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const timer = setInterval(() => {
       setActiveSpeaker((prev) => (prev + 1) % speakers.length);
     }, 4000);

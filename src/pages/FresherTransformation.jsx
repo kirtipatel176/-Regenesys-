@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Check, Rocket, BookOpen, Users, Star, MessageCircle } from 'lucide-react';
+import { Check, Rocket, BookOpen, Users, Star } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import EnrollModal from '../components/EnrollModal';
-import PrivateGPT from '../components/PrivateGPT';
 
 const FresherTransformation = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -134,7 +133,7 @@ const FresherTransformation = () => {
 
       <Footer />
       <EnrollModal isOpen={isModalOpen} onClose={toggleModal} />
-      <PrivateGPT />
+      
     </div>
   );
 };

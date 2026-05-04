@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Home from './pages/Home';
@@ -19,15 +18,7 @@ import Events from './pages/Events';
 
 // Protected route wrapper
 const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useAuth();
-  
-  if (loading) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-white">
-        <div className="w-8 h-8 border-3 border-regenesys-purple/20 border-t-regenesys-purple rounded-full animate-spin" />
-      </div>
-    );
-  }
+  const { user } = useAuth();
   
   if (!user) return <Navigate to="/login" replace />;
   return children;
@@ -35,11 +26,12 @@ const ProtectedRoute = ({ children }) => {
 
 // Redirect authenticated users away from login/signup
 const GuestRoute = ({ children }) => {
-  const { user, loading } = useAuth();
-  if (loading) return null;
+  const { user } = useAuth();
   if (user) return <Navigate to="/private-gpt" replace />;
   return children;
 };
+
+import RightSidebarAI from './components/RightSidebarAI';
 
 function AppRoutes() {
   return (
@@ -63,11 +55,28 @@ function AppRoutes() {
   );
 }
 
+import { useLocation } from 'react-router-dom';
+
+const Layout = ({ children }) => {
+  const { user } = useAuth();
+  const location = useLocation();
+  const isPrivateGPT = location.pathname === '/private-gpt';
+  
+  return (
+    <>
+      {children}
+      {user && !isPrivateGPT && <RightSidebarAI />}
+    </>
+  );
+};
+
 function App() {
   return (
     <Router>
       <AuthProvider>
-        <AppRoutes />
+        <Layout>
+          <AppRoutes />
+        </Layout>
       </AuthProvider>
     </Router>
   );
