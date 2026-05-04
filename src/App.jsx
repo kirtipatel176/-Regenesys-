@@ -29,7 +29,7 @@ const ProtectedRoute = ({ children }) => {
 // Redirect authenticated users away from login/signup
 const GuestRoute = ({ children }) => {
   const { user } = useAuth();
-  if (user) return <Navigate to="/private-gpt" replace />;
+  if (user) return <Navigate to="/" replace />;
   return children;
 };
 
@@ -54,10 +54,25 @@ function AppRoutes() {
       <Route path="/signup" element={<GuestRoute><Signup /></GuestRoute>} />
       <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
       <Route path="/reset-password" element={<GuestRoute><ResetPassword /></GuestRoute>} />
-      <Route path="/private-gpt" element={<ProtectedRoute><PrivateGPTPage /></ProtectedRoute>} />
+      <Route 
+        path="/private-gpt" 
+        element={
+          <ProtectedRoute>
+            <PrivateGPTAdminCheck />
+          </ProtectedRoute>
+        } 
+      />
     </Routes>
   );
 }
+
+const PrivateGPTAdminCheck = () => {
+  const { user } = useAuth();
+  if (user?.email !== 'admin@regenesys.com') {
+    return <Navigate to="/" replace />;
+  }
+  return <PrivateGPTPage />;
+};
 
 import { useLocation } from 'react-router-dom';
 

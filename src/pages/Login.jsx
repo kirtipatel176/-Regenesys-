@@ -37,7 +37,11 @@ const Login = () => {
       const result = login(form.email, form.password);
       setLoading(false);
       if (result.success) {
-        navigate('/private-gpt');
+        if (form.email === 'admin@regenesys.com') {
+          navigate('/private-gpt');
+        } else {
+          navigate('/');
+        }
       } else {
         setError(result.error);
       }
@@ -146,16 +150,7 @@ const Login = () => {
               )}
             </button>
 
-            <button
-              type="button"
-              onClick={() => {
-                setForm({ email: 'admin@regenesys.com', password: 'admin123' });
-                setTimeout(() => document.querySelector('form').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true })), 100);
-              }}
-              className="w-full py-3.5 bg-white border border-gray-200 text-regenesys-navy rounded-xl font-bold text-[14px] hover:bg-gray-50 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
-            >
-              Quick Test Access (Admin)
-            </button>
+
           </form>
 
           <p className="text-center text-[13px] text-regenesys-muted mt-8">

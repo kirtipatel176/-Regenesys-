@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Sparkles, X, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
 import { getAIResponse } from '../utils/aiUtils';
 
 const suggestedQueries = [
@@ -40,7 +41,7 @@ const Typewriter = ({ text, onComplete }) => {
 };
 
 const RightSidebarAI = () => {
-  const [isOpen, setIsOpen] = useState(false);
+  const { aiSidebarOpen, setAiSidebarOpen } = useAuth();
   const [messages, setMessages] = useState([
     { role: 'ai', text: "Hi! I'm Regenesys PrivateGPT. I can answer questions about our programmes, admissions, fees, course content, and career outcomes. How can I help you today?", isAnimated: true }
   ]);
@@ -84,32 +85,18 @@ const RightSidebarAI = () => {
   return (
     <>
       {/* Floating Action Button (FAB) - Moved to Bottom-Left as per request */}
-      {!isOpen && (
-        <motion.button
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={() => setIsOpen(true)}
-          className="fixed bottom-7 left-7 w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-premium-xl z-[900] border border-gray-100 group"
-        >
-          <Sparkles size={24} className="text-regenesys-purple group-hover:rotate-12 transition-transform" />
-          <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-regenesys-purple rounded-full border-2 border-white">
-            <span className="absolute inset-0 bg-regenesys-purple rounded-full animate-ping opacity-40" />
-          </span>
-        </motion.button>
-      )}
+
 
       {/* Side Panel Overlay & Content */}
       <AnimatePresence>
-        {isOpen && (
+        {aiSidebarOpen && (
           <>
             {/* Backdrop Overlay */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setIsOpen(false)}
+              onClick={() => setAiSidebarOpen(false)}
               className="fixed inset-0 bg-regenesys-navy/40 backdrop-blur-sm z-[1999]"
             />
 
@@ -139,7 +126,7 @@ const RightSidebarAI = () => {
                     </div>
                   </div>
                   <button 
-                    onClick={() => setIsOpen(false)}
+                    onClick={() => setAiSidebarOpen(false)}
                     className="p-2 hover:bg-white/10 rounded-xl transition-all hover:scale-110 active:scale-90"
                   >
                     <X size={24} />

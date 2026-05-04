@@ -17,6 +17,9 @@ export const AuthProvider = ({ children }) => {
     }
   });
 
+  const [aiSidebarOpen, setAiSidebarOpen] = useState(false);
+
+
   const signup = (name, email, password) => {
     // Get existing users
     const users = JSON.parse(localStorage.getItem('regenesys_users') || '[]');
@@ -75,7 +78,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, login, signup, logout, aiSidebarOpen, setAiSidebarOpen }}>
       {children}
     </AuthContext.Provider>
   );

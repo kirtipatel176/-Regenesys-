@@ -5,6 +5,12 @@ import { useAuth } from '../context/AuthContext';
 import { Eye, EyeOff, ShieldCheck, Mail, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+const maskEmail = (email) => {
+  if (!email) return '';
+  const [user, domain] = email.split('@');
+  return `${user[0]}...@${domain}`;
+};
+
 
 const Signup = () => {
   const { signup } = useAuth();
@@ -100,7 +106,11 @@ const Signup = () => {
       const result = signup(form.name, form.email, form.password);
       setLoading(false);
       if (result.success) {
-        navigate('/private-gpt');
+        if (form.email === 'admin@regenesys.com') {
+          navigate('/private-gpt');
+        } else {
+          navigate('/');
+        }
       } else {
         setError(result.error);
       }
@@ -186,7 +196,7 @@ const Signup = () => {
                 <h1 className="text-[28px] lg:text-[32px] font-bold text-regenesys-navy mb-3">Verify your email</h1>
                 <p className="text-regenesys-muted text-[14px]">
                   We've sent a 6-digit verification code to<br />
-                  <span className="font-bold text-regenesys-navy">{form.email}</span>
+                  <span className="font-bold text-regenesys-navy">{maskEmail(form.email)}</span>
                 </p>
               </div>
             )}

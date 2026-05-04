@@ -11,6 +11,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 import { getAIResponse } from '../utils/aiUtils';
 
+const GeminiIcon = ({ className = "w-5 h-5" }) => (
+  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <path d="M12 0L14.5 9.5L24 12L14.5 14.5L12 24L9.5 14.5L0 12L9.5 9.5L12 0Z" fill="currentColor" />
+  </svg>
+);
+
 const PrivateGPTPage = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -267,10 +273,10 @@ const PrivateGPTPage = () => {
               {sidebarOpen ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}
             </button>
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-regenesys-purple to-indigo-700 flex items-center justify-center">
-                <Sparkles size={14} className="text-white" />
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-regenesys-purple to-indigo-700 flex items-center justify-center shadow-sm">
+                <GeminiIcon className="w-4 h-4 text-white" />
               </div>
-              <span className="text-[14px] font-bold text-gray-800">PrivateGPT</span>
+              <span className="text-[15px] font-bold text-gray-800 tracking-tight">PrivateGPT</span>
               <span className="text-[10px] bg-regenesys-purple/10 text-regenesys-purple font-bold px-2 py-0.5 rounded-full">Enterprise</span>
             </div>
           </div>
@@ -297,7 +303,7 @@ const PrivateGPTPage = () => {
                 /* Welcome State - Clean centered version like screenshot */
                 <div className="h-full flex flex-col items-center justify-center p-8">
                   <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-regenesys-purple to-indigo-700 flex items-center justify-center mb-6 shadow-lg">
-                    <Sparkles size={28} className="text-white" />
+                    <GeminiIcon className="w-8 h-8 text-white" />
                   </div>
                   <h2 className="text-[22px] font-bold text-gray-800 mb-2">Regenesys PrivateGPT</h2>
                   <p className="text-[14px] text-gray-500 mb-8 text-center max-w-md">

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChevronDown, Menu, X, Sparkles, LogIn } from 'lucide-react';
+import { ChevronDown, Menu, X, Sparkles, LogIn, LogOut } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
@@ -9,7 +9,7 @@ const Navbar = ({ onEnrollClick }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, setAiSidebarOpen, logout } = useAuth();
   
   const isHomePage = location.pathname === '/';
   const darkHeroPages = [
@@ -85,14 +85,32 @@ const Navbar = ({ onEnrollClick }) => {
       </div>
 
       <div className="ml-auto flex items-center gap-3">
-        {user ? (
-          <Link to="/private-gpt" className={`hidden md:flex items-center gap-2 px-5 py-2.5 rounded-full text-[13px] font-bold transition-all ${useWhiteText ? 'bg-white/15 text-white hover:bg-white/25 border border-white/20' : 'bg-regenesys-purple/10 text-regenesys-purple hover:bg-regenesys-purple/20'}`}>
-            <Sparkles size={14} /> PrivateGPT
+        {user?.email === 'admin@regenesys.com' ? (
+          <Link to="/private-gpt" className={`hidden md:flex items-center justify-center w-10 h-10 rounded-full transition-all ${useWhiteText ? 'bg-white/15 text-white hover:bg-white/25 border border-white/20' : 'bg-regenesys-purple/10 text-regenesys-purple hover:bg-regenesys-purple/20'}`} title="PrivateGPT">
+            <Sparkles size={18} />
           </Link>
+        ) : user ? (
+          <button 
+            onClick={() => setAiSidebarOpen(true)}
+            className={`hidden md:flex items-center justify-center w-10 h-10 rounded-full transition-all ${useWhiteText ? 'bg-white/15 text-white hover:bg-white/25 border border-white/20' : 'bg-regenesys-purple/10 text-regenesys-purple hover:bg-regenesys-purple/20'}`} 
+            title="Open AI Assistant"
+          >
+            <Sparkles size={18} />
+          </button>
         ) : (
           <Link to="/login" className={`hidden md:flex items-center gap-2 px-5 py-2.5 rounded-full text-[13px] font-bold transition-all ${useWhiteText ? 'text-white hover:text-regenesys-gold' : 'text-regenesys-navy hover:text-regenesys-purple'}`}>
             <LogIn size={14} /> Login
           </Link>
+        )}
+        
+        {user && (
+          <button 
+            onClick={logout}
+            className={`hidden md:flex items-center justify-center w-10 h-10 rounded-full transition-all ${useWhiteText ? 'text-white hover:text-regenesys-gold' : 'text-regenesys-navy hover:text-regenesys-red'}`}
+            title="Sign Out"
+          >
+            <LogOut size={18} />
+          </button>
         )}
         <button onClick={onEnrollClick} className={`hidden md:block px-8 py-3.5 rounded-full text-[13px] font-black transition-all shadow-premium active:scale-95 ${useWhiteText ? 'bg-white text-regenesys-navy hover:bg-regenesys-gold' : 'bg-regenesys-navy text-white hover:bg-regenesys-red'}`}>GET STARTED</button>
         <button className={`lg:hidden p-2 ${useWhiteText ? 'text-white' : 'text-regenesys-navy'}`} onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
@@ -119,9 +137,9 @@ const Navbar = ({ onEnrollClick }) => {
               </div>
               <MobileLink to="/success-stories" onClick={() => setIsMobileMenuOpen(false)}>Success Stories</MobileLink>
               <MobileLink to="/contact" onClick={() => setIsMobileMenuOpen(false)}>Contact Us</MobileLink>
-              {user ? (
+              {user?.email === 'admin@regenesys.com' ? (
                 <MobileLink to="/private-gpt" onClick={() => setIsMobileMenuOpen(false)}>PrivateGPT</MobileLink>
-              ) : (
+              ) : !user && (
                 <MobileLink to="/login" onClick={() => setIsMobileMenuOpen(false)}>Login</MobileLink>
               )}
             </div>
