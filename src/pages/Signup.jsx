@@ -25,7 +25,7 @@ const Signup = () => {
       return;
     }
 
-    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
     if (!passwordRegex.test(form.password)) {
       setError('Password must be at least 8 characters and include 1 uppercase letter, 1 number, and 1 special character.');
       return;
@@ -46,7 +46,7 @@ const Signup = () => {
 
   const handleOtpChange = (e, index) => {
     const value = e.target.value;
-    if (isNaN(value)) return;
+    if (value !== '' && !/^\d+$/.test(value)) return;
     
     const newOtp = [...otp];
     // Take only the last entered character to handle fast typing/paste
@@ -243,19 +243,28 @@ const Signup = () => {
 
                 <div>
                   <label className="text-[12px] font-bold text-regenesys-navy/70 uppercase tracking-wider mb-2 block">Confirm Password</label>
-                  <input
-                    type="password"
-                    value={form.confirmPassword}
-                    onChange={e => setForm({ ...form, confirmPassword: e.target.value })}
-                    placeholder="Re-enter your password"
-                    className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-[14px] outline-none focus:border-regenesys-purple focus:ring-2 focus:ring-regenesys-purple/10 transition-all placeholder:text-gray-400"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPass ? 'text' : 'password'}
+                      value={form.confirmPassword}
+                      onChange={e => setForm({ ...form, confirmPassword: e.target.value })}
+                      placeholder="Re-enter your password"
+                      className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-[14px] outline-none focus:border-regenesys-purple focus:ring-2 focus:ring-regenesys-purple/10 transition-all placeholder:text-gray-400 pr-12"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPass(!showPass)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
                 </div>
 
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3.5 bg-regenesys-navy text-white rounded-xl font-bold text-[14px] hover:bg-regenesys-purple transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4 shadow-lg shadow-regenesys-navy/10"
+                  className="w-full py-3.5 bg-regenesys-purple text-white rounded-xl font-bold text-[14px] hover:bg-regenesys-purple-dark transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4 shadow-lg shadow-regenesys-purple/20"
                 >
                   {loading ? (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
