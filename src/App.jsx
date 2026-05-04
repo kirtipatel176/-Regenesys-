@@ -31,6 +31,8 @@ const GuestRoute = ({ children }) => {
   return children;
 };
 
+import RightSidebarAI from './components/RightSidebarAI';
+
 function AppRoutes() {
   return (
     <Routes>
@@ -53,11 +55,25 @@ function AppRoutes() {
   );
 }
 
+const Layout = ({ children }) => {
+  const { user } = useAuth();
+  const isAdmin = user?.email === 'admin@regenesys.com';
+  
+  return (
+    <>
+      {children}
+      {user && !isAdmin && <RightSidebarAI />}
+    </>
+  );
+};
+
 function App() {
   return (
     <Router>
       <AuthProvider>
-        <AppRoutes />
+        <Layout>
+          <AppRoutes />
+        </Layout>
       </AuthProvider>
     </Router>
   );

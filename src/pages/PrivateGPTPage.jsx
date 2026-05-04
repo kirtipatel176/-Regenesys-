@@ -516,13 +516,23 @@ const PrivateGPTPage = () => {
                   ))}
                 </div>
 
-                {/* Upload */}
+                {/* Upload - Admin Only */}
                 <div className="p-3 border-t border-gray-100 shrink-0">
-                  <label className="flex items-center gap-2 px-4 py-2.5 bg-white border border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-regenesys-purple/5 hover:border-regenesys-purple/30 transition-all">
-                    <input type="file" className="hidden" accept=".pdf,.docx,.txt,.md" />
-                    <Upload size={14} className="text-gray-400" />
-                    <span className="text-[12px] text-gray-500 font-medium">Upload document</span>
-                  </label>
+                  {user?.email === 'admin@regenesys.com' ? (
+                    <label className="flex items-center gap-2 px-4 py-2.5 bg-white border border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-regenesys-purple/5 hover:border-regenesys-purple/30 transition-all">
+                      <input type="file" className="hidden" accept=".pdf,.docx,.txt,.md" />
+                      <Upload size={14} className="text-gray-400" />
+                      <span className="text-[12px] text-gray-500 font-medium">Upload document</span>
+                    </label>
+                  ) : (
+                    <div 
+                      className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 border border-dashed border-gray-200 rounded-xl cursor-not-allowed opacity-60"
+                      title="Only administrators can upload documents"
+                    >
+                      <Upload size={14} className="text-gray-400" />
+                      <span className="text-[12px] text-gray-400 font-medium">Upload restricted</span>
+                    </div>
+                  )}
                 </div>
               </motion.div>
             )}
