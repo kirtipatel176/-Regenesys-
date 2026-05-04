@@ -21,6 +21,17 @@ const Login = () => {
       return;
     }
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.email)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+
+    if (form.password.length < 6) {
+      setError('Password must be at least 6 characters long.');
+      return;
+    }
+
     setLoading(true);
     setTimeout(() => {
       const result = login(form.email, form.password);
@@ -115,6 +126,11 @@ const Login = () => {
                 >
                   {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
+              </div>
+              <div className="flex justify-end mt-2">
+                <Link to="/forgot-password" className="text-[13px] font-bold text-regenesys-purple hover:underline">
+                  Forgot Password?
+                </Link>
               </div>
             </div>
 
