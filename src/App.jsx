@@ -55,13 +55,17 @@ function AppRoutes() {
   );
 }
 
+import { useLocation } from 'react-router-dom';
+
 const Layout = ({ children }) => {
   const { user } = useAuth();
+  const location = useLocation();
+  const isPrivateGPT = location.pathname === '/private-gpt';
   
   return (
     <>
       {children}
-      {user && <RightSidebarAI />}
+      {user && !isPrivateGPT && <RightSidebarAI />}
     </>
   );
 };
