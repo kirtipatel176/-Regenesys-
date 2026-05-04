@@ -57,12 +57,11 @@ function AppRoutes() {
 
 const Layout = ({ children }) => {
   const { user } = useAuth();
-  const isAdmin = user?.email === 'admin@regenesys.com';
   
   return (
     <>
       {children}
-      {user && !isAdmin && <RightSidebarAI />}
+      {user && <RightSidebarAI />}
     </>
   );
 };
