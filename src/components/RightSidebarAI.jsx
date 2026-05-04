@@ -91,21 +91,12 @@ const RightSidebarAI = () => {
       <AnimatePresence>
         {aiSidebarOpen && (
           <>
-            {/* Backdrop Overlay */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setAiSidebarOpen(false)}
-              className="fixed inset-0 bg-regenesys-navy/40 backdrop-blur-sm z-[1999]"
-            />
-
             <motion.div
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed top-0 right-0 bottom-0 w-full sm:w-[420px] bg-white shadow-premium-2xl flex flex-col z-[2000] overflow-hidden"
+              className="fixed top-0 right-0 bottom-0 w-full sm:w-[420px] bg-white border-l border-gray-100 flex flex-col z-[2000] overflow-hidden"
             >
               {/* Header - Premium Gradient */}
               <div className="p-7 bg-gradient-to-br from-regenesys-purple to-indigo-800 text-white relative overflow-hidden">

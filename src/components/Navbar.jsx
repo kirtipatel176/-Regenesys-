@@ -9,7 +9,7 @@ const Navbar = ({ onEnrollClick }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const { user, setAiSidebarOpen, logout } = useAuth();
+  const { user, setAiSidebarOpen, logout, aiSidebarOpen } = useAuth();
   
   const isHomePage = location.pathname === '/';
   const darkHeroPages = [
@@ -44,7 +44,8 @@ const Navbar = ({ onEnrollClick }) => {
   const useWhiteText = !isScrolled && hasDarkHero;
   
   return (
-    <nav className={`fixed left-0 right-0 z-[1000] px-6 lg:px-12 flex items-center transition-all duration-500 
+    <nav className={`fixed left-0 z-[1000] px-6 lg:px-12 flex items-center transition-all duration-500 
+      ${aiSidebarOpen && user && location.pathname !== '/private-gpt' ? 'right-0 lg:right-[420px]' : 'right-0'}
       ${isScrolled ? 'top-0 h-16 bg-white shadow-premium-lg border-b border-gray-100' : 'top-[var(--topbar-height)] lg:top-[var(--topbar-height-desktop)] h-20 lg:h-20 bg-transparent'}`}>
       
       <Link to="/" className="flex items-center gap-3">
@@ -112,7 +113,7 @@ const Navbar = ({ onEnrollClick }) => {
             <LogOut size={18} />
           </button>
         )}
-        <button onClick={onEnrollClick} className={`hidden md:block px-8 py-3.5 rounded-full text-[13px] font-black transition-all shadow-premium active:scale-95 ${useWhiteText ? 'bg-white text-regenesys-navy hover:bg-regenesys-gold' : 'bg-regenesys-navy text-white hover:bg-regenesys-red'}`}>GET STARTED</button>
+        <button onClick={onEnrollClick} className={`hidden md:block px-6 py-2.5 rounded-full text-[12px] font-black transition-all shadow-premium active:scale-95 ${useWhiteText ? 'bg-white text-regenesys-navy hover:bg-regenesys-gold' : 'bg-regenesys-navy text-white hover:bg-regenesys-red'}`}>GET STARTED</button>
         <button className={`lg:hidden p-2 ${useWhiteText ? 'text-white' : 'text-regenesys-navy'}`} onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
           {isMobileMenuOpen ? <X size={30} /> : <Menu size={30} />}
         </button>

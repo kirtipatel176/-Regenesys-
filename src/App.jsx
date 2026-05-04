@@ -77,15 +77,16 @@ const PrivateGPTAdminCheck = () => {
 import { useLocation } from 'react-router-dom';
 
 const Layout = ({ children }) => {
-  const { user } = useAuth();
+  const { user, aiSidebarOpen } = useAuth();
   const location = useLocation();
   const isPrivateGPT = location.pathname === '/private-gpt';
+  const showSidebar = user && !isPrivateGPT && aiSidebarOpen;
   
   return (
-    <>
+    <div className={`transition-all duration-500 ease-in-out ${showSidebar ? 'pr-0 lg:pr-[420px]' : 'pr-0'}`}>
       {children}
       {user && !isPrivateGPT && <RightSidebarAI />}
-    </>
+    </div>
   );
 };
 
