@@ -45,7 +45,7 @@ const RightSidebarAI = () => {
 
   return (
     <>
-      {/* Floating Action Button (FAB) */}
+      {/* Floating Action Button (FAB) - White Style like original PrivateGPT */}
       {!isOpen && (
         <motion.button
           initial={{ scale: 0, opacity: 0 }}
@@ -53,10 +53,12 @@ const RightSidebarAI = () => {
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 w-14 h-14 bg-[#10a37f] text-white rounded-full flex items-center justify-center shadow-premium-lg z-[100] group"
+          className="fixed bottom-7 right-7 w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-premium-xl z-[100] border border-gray-100 group"
         >
-          <Sparkles size={24} className="group-hover:rotate-12 transition-transform" />
-          <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white animate-pulse" />
+          <Sparkles size={24} className="text-regenesys-purple group-hover:rotate-12 transition-transform" />
+          <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-regenesys-purple rounded-full border-2 border-white">
+            <span className="absolute inset-0 bg-regenesys-purple rounded-full animate-ping opacity-40" />
+          </span>
         </motion.button>
       )}
 
@@ -158,7 +160,7 @@ const RightSidebarAI = () => {
                   onClick={() => handleSend()}
                   disabled={!input.trim() || isTyping}
                   className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
-                    input.trim() && !isTyping ? 'bg-[#10a37f] text-white shadow-md' : 'bg-gray-200 text-gray-400'
+                    input.trim() && !isTyping ? 'bg-regenesys-purple text-white shadow-md' : 'bg-gray-200 text-gray-400'
                   }`}
                 >
                   <ArrowRight size={20} />
