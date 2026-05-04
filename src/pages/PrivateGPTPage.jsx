@@ -69,7 +69,9 @@ const getAIResponse = (query) => {
 const PrivateGPTPage = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const isAdmin = user?.email === 'admin@regenesys.com';
+  
+  const [sidebarOpen, setSidebarOpen] = useState(isAdmin);
   const [conversations, setConversations] = useState([
     { id: '1', title: 'Welcome Chat', messages: [{ role: 'ai', text: `Hello ${user?.name || 'there'}! Welcome to Regenesys PrivateGPT — your enterprise knowledge assistant.\n\nI have access to our internal knowledge base including programme details, enrolment processes, success stories, and more.\n\n**What would you like to know?**`, sources: ['programmes.pdf', 'company_overview.pdf'], time: new Date() }], createdAt: new Date() }
   ]);
@@ -78,7 +80,7 @@ const PrivateGPTPage = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingText, setStreamingText] = useState('');
-  const [showSources, setShowSources] = useState(true);
+  const [showSources, setShowSources] = useState(isAdmin);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const msgsEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -224,9 +226,9 @@ const PrivateGPTPage = () => {
 
   return (
     <div className="h-screen flex bg-white overflow-hidden">
-      {/* Sidebar */}
+      {/* Sidebar - Admin Only */}
       <AnimatePresence>
-        {sidebarOpen && (
+        {isAdmin && sidebarOpen && (
           <motion.aside
             initial={{ width: 0, opacity: 0 }}
             animate={{ width: 280, opacity: 1 }}
@@ -310,9 +312,11 @@ const PrivateGPTPage = () => {
         {/* Top Bar */}
         <header className="h-14 flex items-center justify-between px-4 border-b border-gray-100 bg-white shrink-0">
           <div className="flex items-center gap-3">
-            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-500">
-              {sidebarOpen ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}
-            </button>
+            {isAdmin && (
+              <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-500">
+                {sidebarOpen ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}
+              </button>
+            )}
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-regenesys-purple to-indigo-700 flex items-center justify-center">
                 <Sparkles size={14} className="text-white" />
@@ -321,9 +325,19 @@ const PrivateGPTPage = () => {
               <span className="text-[10px] bg-regenesys-purple/10 text-regenesys-purple font-bold px-2 py-0.5 rounded-full">Enterprise</span>
             </div>
           </div>
-          <button onClick={() => setShowSources(!showSources)} className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-all text-[12px] font-semibold text-gray-500">
-            <BookOpen size={14} /> Sources ({sources.length})
-          </button>
+          
+          <div className="flex items-center gap-2">
+             {isAdmin && (
+               <button onClick={() => setShowSources(!showSources)} className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-all text-[12px] font-semibold text-gray-500">
+                 <BookOpen size={14} /> Sources ({sources.length})
+               </button>
+             )}
+             {!isAdmin && (
+               <button onClick={() => navigate('/')} className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-all text-[12px] font-semibold text-gray-500">
+                 <ArrowLeft size={14} /> Website
+               </button>
+             )}
+          </div>
         </header>
 
         <div className="flex-1 flex min-h-0">
@@ -331,7 +345,7 @@ const PrivateGPTPage = () => {
           <div className="flex-1 flex flex-col min-w-0">
             <div className="flex-1 overflow-y-auto">
               {messages.length <= 1 ? (
-                /* Welcome State */
+                /* Welcome State - Clean centered version like screenshot */
                 <div className="h-full flex flex-col items-center justify-center p-8">
                   <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-regenesys-purple to-indigo-700 flex items-center justify-center mb-6 shadow-lg">
                     <Sparkles size={28} className="text-white" />
@@ -411,8 +425,8 @@ const PrivateGPTPage = () => {
                           </div>
                         )}
 
-                        {/* Sources — only show when not streaming */}
-                        {msg.role === 'ai' && msg.sources && !msg.streaming && (
+                        {/* Sources — only show when not streaming and for admin */}
+                        {isAdmin && msg.role === 'ai' && msg.sources && !msg.streaming && (
                           <div className="flex gap-2 flex-wrap mt-2 ml-1">
                             {msg.sources.map((s, idx) => (
                               <span key={idx} className="bg-white border border-gray-200 px-2.5 py-1 rounded-lg text-[10px] font-medium text-gray-500 flex items-center gap-1.5">
@@ -464,9 +478,11 @@ const PrivateGPTPage = () => {
                     style={{ minHeight: '52px' }}
                   />
                   <div className="flex items-center gap-4 pr-3 pb-2">
-                    <span className="text-[11px] font-bold text-gray-400 whitespace-nowrap mb-1.5">
-                      {sources.length} sources
-                    </span>
+                    {isAdmin && (
+                      <span className="text-[11px] font-bold text-gray-400 whitespace-nowrap mb-1.5">
+                        {sources.length} sources
+                      </span>
+                    )}
                     <button
                       onClick={() => handleSend()}
                       disabled={!input.trim() || isTyping || isStreaming}
@@ -487,9 +503,9 @@ const PrivateGPTPage = () => {
             </div>
           </div>
 
-          {/* Sources Panel */}
+          {/* Sources Panel - Admin Only */}
           <AnimatePresence>
-            {showSources && (
+            {isAdmin && showSources && (
               <motion.div
                 initial={{ width: 0, opacity: 0 }}
                 animate={{ width: 280, opacity: 1 }}
