@@ -1,9 +1,8 @@
-import React from 'react';
 import { Mail, Phone, ChevronRight } from 'lucide-react';
 
 const TopBar = ({ onEnrollClick }) => {
   return (
-    <div className="bg-regenesys-navy text-white py-2.5 px-4 lg:px-10 flex flex-row justify-between items-center gap-2 relative z-[100] border-b border-white/5">
+    <div className="bg-regenesys-navy text-white h-[var(--topbar-height)] lg:h-[var(--topbar-height-desktop)] px-4 lg:px-10 flex flex-row justify-between items-center gap-2 relative z-[100] border-b border-white/5">
       <div className="flex items-center gap-6">
         <div className="hidden lg:flex items-center gap-2">
           <span className="w-2 h-2 bg-regenesys-red rounded-full animate-pulse" />

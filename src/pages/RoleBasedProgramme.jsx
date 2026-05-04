@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Check, ChevronRight, MessageCircle, Target, Lightbulb, Trophy } from 'lucide-react';
+import { Check, MessageCircle, Target, Lightbulb, Trophy } from 'lucide-react';
 import heroBanner from '../assets/role_hero.png';
 import overviewImg from '../assets/role_overview.png';
 import managerImg from '../assets/role_manager.png';

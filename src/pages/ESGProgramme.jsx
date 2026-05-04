@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import TopBar from '../components/TopBar';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -6,8 +6,7 @@ import EnrollModal from '../components/EnrollModal';
 import PrivateGPT from '../components/PrivateGPT';
 import { motion } from 'framer-motion';
 import SEO from '../components/SEO';
-import esgHero from '../assets/role_woman.png'; // Placeholder for ESG context
-import esgDetail from '../assets/role_manager.png'; // Placeholder for detail
+
 
 const ESGProgramme = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);

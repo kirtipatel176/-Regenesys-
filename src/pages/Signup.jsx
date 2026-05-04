@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Eye, EyeOff, ArrowRight, ShieldCheck, UserPlus } from 'lucide-react';
+import { Eye, EyeOff, ShieldCheck, UserPlus } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Signup = () => {

@@ -1,11 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
-  Plus, Send, Sparkles, FileText, Trash2, SquarePen, Menu, X,
-  Upload, BookOpen, MessageSquare, Settings, LogOut, ChevronDown,
-  Search, MoreHorizontal, Copy, ThumbsUp, ThumbsDown, ArrowLeft, ArrowRight,
-  PanelLeftClose, PanelLeftOpen, Clock, Bot, User
+  Plus, Sparkles, FileText, Trash2, 
+  Upload, BookOpen, MessageSquare, LogOut, ChevronDown,
+  Copy, ThumbsUp, ThumbsDown, ArrowLeft, ArrowRight,
+  PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -25,8 +25,8 @@ const knowledgeBase = {
 
 const getAIResponse = (query) => {
   const lower = query.toLowerCase();
-  let text = "";
-  let suggestions = [];
+  let text;
+  let suggestions;
 
   if (lower.includes('programme') || lower.includes('program') || lower.includes('course') || lower.includes('offer')) {
     text = knowledgeBase.programmes;
@@ -85,7 +85,7 @@ const PrivateGPTPage = () => {
   const streamRef = useRef(null);
 
   const activeConv = conversations.find(c => c.id === activeConvId);
-  const messages = activeConv?.messages || [];
+  const messages = useMemo(() => activeConv?.messages || [], [activeConv]);
 
   useEffect(() => {
     msgsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -180,7 +180,7 @@ const PrivateGPTPage = () => {
           }));
         }
       }, speed);
-    }, 600 + Math.random() * 600);
+    }, 1000);
   };
 
   const handleSuggestedClick = (q) => {

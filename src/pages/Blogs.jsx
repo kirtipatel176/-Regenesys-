@@ -1,9 +1,8 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import TopBar from '../components/TopBar';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { Calendar, User, Search, ArrowRight, ChevronDown } from 'lucide-react';
+import { Calendar, User, Search, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import SEO from '../components/SEO';
 
