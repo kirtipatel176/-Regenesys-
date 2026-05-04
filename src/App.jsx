@@ -15,6 +15,8 @@ import Signup from './pages/Signup';
 import PrivateGPTPage from './pages/PrivateGPTPage';
 import Blogs from './pages/Blogs';
 import Events from './pages/Events';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 // Protected route wrapper
 const ProtectedRoute = ({ children }) => {
@@ -50,6 +52,8 @@ function AppRoutes() {
       <Route path="/events" element={<Events />} />
       <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
       <Route path="/signup" element={<GuestRoute><Signup /></GuestRoute>} />
+      <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
+      <Route path="/reset-password" element={<GuestRoute><ResetPassword /></GuestRoute>} />
       <Route path="/private-gpt" element={<ProtectedRoute><PrivateGPTPage /></ProtectedRoute>} />
     </Routes>
   );
