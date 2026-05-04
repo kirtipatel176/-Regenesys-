@@ -3,7 +3,6 @@ import TopBar from '../components/TopBar';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import EnrollModal from '../components/EnrollModal';
-import PrivateGPT from '../components/PrivateGPT';
 import { motion } from 'framer-motion';
 import SEO from '../components/SEO';
 
@@ -152,7 +151,7 @@ const ESGProgramme = () => {
 
       <Footer />
       <EnrollModal isOpen={isModalOpen} onClose={toggleModal} />
-      <PrivateGPT />
+      
     </div>
   );
 };

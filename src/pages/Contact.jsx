@@ -3,7 +3,6 @@ import TopBar from '../components/TopBar';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import EnrollModal from '../components/EnrollModal';
-import PrivateGPT from '../components/PrivateGPT';
 import { Mail, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -128,7 +127,7 @@ const Contact = () => {
 
       <Footer />
       <EnrollModal isOpen={isModalOpen} onClose={toggleModal} />
-      <PrivateGPT />
+      
     </div>
   );
 };

@@ -5,7 +5,6 @@ import TopBar from '../components/TopBar';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import EnrollModal from '../components/EnrollModal';
-import PrivateGPT from '../components/PrivateGPT';
 
 const LeadershipMastery = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -115,7 +114,7 @@ const LeadershipMastery = () => {
 
       <Footer />
       <EnrollModal isOpen={isModalOpen} onClose={toggleModal} />
-      <PrivateGPT />
+      
     </div>
   );
 };
