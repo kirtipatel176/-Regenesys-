@@ -1,18 +1,22 @@
-import { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Eye, EyeOff, ShieldCheck, UserPlus } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Eye, EyeOff, ShieldCheck, UserPlus, Mail, ArrowRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Signup = () => {
   const { signup } = useAuth();
   const navigate = useNavigate();
+  
+  const [step, setStep] = useState(1); // 1: Details, 2: OTP
   const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });
+  const [otp, setOtp] = useState(new Array(6).fill(''));
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const otpRefs = useRef([]);
 
-  const handleSubmit = (e) => {
+  const handleSignupSubmit = (e) => {
     e.preventDefault();
     setError('');
 
@@ -21,8 +25,9 @@ const Signup = () => {
       return;
     }
 
-    if (form.password.length < 6) {
-      setError('Password must be at least 6 characters.');
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+    if (!passwordRegex.test(form.password)) {
+      setError('Password must be at least 8 characters and include 1 uppercase letter, 1 number, and 1 special character.');
       return;
     }
 
@@ -31,8 +36,65 @@ const Signup = () => {
       return;
     }
 
+    // Simulate sending OTP
     setLoading(true);
     setTimeout(() => {
+      setLoading(false);
+      setStep(2);
+    }, 800);
+  };
+
+  const handleOtpChange = (e, index) => {
+    const value = e.target.value;
+    if (isNaN(value)) return;
+    
+    const newOtp = [...otp];
+    // Take only the last entered character to handle fast typing/paste
+    newOtp[index] = value.substring(value.length - 1);
+    setOtp(newOtp);
+
+    // Auto-focus next input
+    if (value && index < 5) {
+      otpRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text/plain').trim();
+    if (!pastedData || isNaN(pastedData)) return;
+
+    const digits = pastedData.split('').slice(0, 6);
+    const newOtp = [...otp];
+    digits.forEach((digit, i) => {
+      newOtp[i] = digit;
+    });
+    setOtp(newOtp);
+
+    // Focus the next empty input or the last input
+    const nextEmptyIndex = newOtp.findIndex(val => val === '');
+    const focusIndex = nextEmptyIndex === -1 ? 5 : nextEmptyIndex;
+    otpRefs.current[focusIndex]?.focus();
+  };
+
+  const handleOtpKeyDown = (e, index) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      otpRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleOtpSubmit = (e) => {
+    e.preventDefault();
+    setError('');
+    
+    if (otp.join('').length < 6) {
+      setError('Please enter the complete 6-digit code.');
+      return;
+    }
+
+    setLoading(true);
+    setTimeout(() => {
+      // Execute the actual signup process using context
       const result = signup(form.name, form.email, form.password);
       setLoading(false);
       if (result.success) {
@@ -40,7 +102,7 @@ const Signup = () => {
       } else {
         setError(result.error);
       }
-    }, 600);
+    }, 1200);
   };
 
   return (
@@ -89,105 +151,186 @@ const Signup = () => {
         </div>
       </div>
 
-      {/* Right Panel — Signup Form */}
-      <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-[420px]"
-        >
-          <div className="lg:hidden flex items-center gap-3 mb-10">
-            <Link to="/" className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#ffcc00] to-[#008444] flex items-center justify-center text-white font-black text-sm shadow-lg">R</div>
-              <span className="text-[14px] font-head font-bold text-regenesys-navy uppercase">Regenesys</span>
-            </Link>
-          </div>
-
-          <h1 className="text-[28px] lg:text-[32px] font-bold text-regenesys-navy mb-2">Create your account</h1>
-          <p className="text-regenesys-muted text-[14px] mb-8">Get started with Regenesys Enterprise AI.</p>
-
-          {error && (
-            <div className="bg-red-50 border border-red-100 text-red-600 text-[13px] px-4 py-3 rounded-xl mb-6">{error}</div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="text-[12px] font-bold text-regenesys-navy/70 uppercase tracking-wider mb-2 block">Full Name</label>
-              <input
-                type="text"
-                value={form.name}
-                onChange={e => setForm({ ...form, name: e.target.value })}
-                placeholder="John Doe"
-                className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-[14px] outline-none focus:border-regenesys-purple focus:ring-2 focus:ring-regenesys-purple/10 transition-all placeholder:text-gray-400"
-              />
+      {/* Right Panel — Multi-step Signup Form */}
+      <div className="flex-1 flex items-center justify-center p-6 lg:p-12 relative overflow-hidden">
+        <AnimatePresence mode="wait">
+          <motion.div 
+            key={step}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="w-full max-w-[420px]"
+          >
+            {/* Mobile Header */}
+            <div className="lg:hidden flex items-center gap-3 mb-10">
+              <Link to="/" className="flex items-center gap-2">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#ffcc00] to-[#008444] flex items-center justify-center text-white font-black text-sm shadow-lg">R</div>
+                <span className="text-[14px] font-head font-bold text-regenesys-navy uppercase">Regenesys</span>
+              </Link>
             </div>
 
-            <div>
-              <label className="text-[12px] font-bold text-regenesys-navy/70 uppercase tracking-wider mb-2 block">Email</label>
-              <input
-                type="email"
-                value={form.email}
-                onChange={e => setForm({ ...form, email: e.target.value })}
-                placeholder="you@company.com"
-                className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-[14px] outline-none focus:border-regenesys-purple focus:ring-2 focus:ring-regenesys-purple/10 transition-all placeholder:text-gray-400"
-              />
-            </div>
-
-            <div>
-              <label className="text-[12px] font-bold text-regenesys-navy/70 uppercase tracking-wider mb-2 block">Password</label>
-              <div className="relative">
-                <input
-                  type={showPass ? 'text' : 'password'}
-                  value={form.password}
-                  onChange={e => setForm({ ...form, password: e.target.value })}
-                  placeholder="Min 6 characters"
-                  className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-[14px] outline-none focus:border-regenesys-purple focus:ring-2 focus:ring-regenesys-purple/10 transition-all placeholder:text-gray-400 pr-12"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPass(!showPass)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
+            {/* Form Headers */}
+            {step === 1 ? (
+              <>
+                <h1 className="text-[28px] lg:text-[32px] font-bold text-regenesys-navy mb-2">Create your account</h1>
+                <p className="text-regenesys-muted text-[14px] mb-8">Get started with Regenesys Enterprise AI.</p>
+              </>
+            ) : (
+              <div className="text-center mb-8">
+                <div className="w-16 h-16 bg-regenesys-purple/10 text-regenesys-purple rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Mail size={28} />
+                </div>
+                <h1 className="text-[28px] lg:text-[32px] font-bold text-regenesys-navy mb-3">Verify your email</h1>
+                <p className="text-regenesys-muted text-[14px]">
+                  We've sent a 6-digit verification code to<br />
+                  <span className="font-bold text-regenesys-navy">{form.email}</span>
+                </p>
               </div>
-            </div>
+            )}
 
-            <div>
-              <label className="text-[12px] font-bold text-regenesys-navy/70 uppercase tracking-wider mb-2 block">Confirm Password</label>
-              <input
-                type="password"
-                value={form.confirmPassword}
-                onChange={e => setForm({ ...form, confirmPassword: e.target.value })}
-                placeholder="Re-enter your password"
-                className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-[14px] outline-none focus:border-regenesys-purple focus:ring-2 focus:ring-regenesys-purple/10 transition-all placeholder:text-gray-400"
-              />
-            </div>
+            {error && (
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-red-50 border border-red-100 text-red-600 text-[13px] px-4 py-3 rounded-xl mb-6 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
+                {error}
+              </motion.div>
+            )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3.5 bg-regenesys-purple text-white rounded-xl font-bold text-[14px] hover:bg-regenesys-purple-dark transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
-            >
-              {loading ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <>Create Account <UserPlus size={16} /></>
-              )}
-            </button>
-          </form>
+            {/* Forms */}
+            {step === 1 ? (
+              <form onSubmit={handleSignupSubmit} className="space-y-4">
+                <div>
+                  <label className="text-[12px] font-bold text-regenesys-navy/70 uppercase tracking-wider mb-2 block">Full Name</label>
+                  <input
+                    type="text"
+                    value={form.name}
+                    onChange={e => setForm({ ...form, name: e.target.value })}
+                    placeholder="John Doe"
+                    className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-[14px] outline-none focus:border-regenesys-purple focus:ring-2 focus:ring-regenesys-purple/10 transition-all placeholder:text-gray-400"
+                  />
+                </div>
 
-          <p className="text-center text-[13px] text-regenesys-muted mt-8">
-            Already have an account?{' '}
-            <Link to="/login" className="text-regenesys-purple font-bold hover:underline">Sign In</Link>
-          </p>
+                <div>
+                  <label className="text-[12px] font-bold text-regenesys-navy/70 uppercase tracking-wider mb-2 block">Email</label>
+                  <input
+                    type="email"
+                    value={form.email}
+                    onChange={e => setForm({ ...form, email: e.target.value })}
+                    placeholder="you@company.com"
+                    className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-[14px] outline-none focus:border-regenesys-purple focus:ring-2 focus:ring-regenesys-purple/10 transition-all placeholder:text-gray-400"
+                  />
+                </div>
 
-          <div className="mt-10 pt-6 border-t border-gray-100 text-center">
-            <Link to="/" className="text-[12px] text-regenesys-muted hover:text-regenesys-navy transition-colors">
-              ← Back to Regenesys Corporate Education
-            </Link>
-          </div>
-        </motion.div>
+                <div>
+                  <label className="text-[12px] font-bold text-regenesys-navy/70 uppercase tracking-wider mb-2 block">Password</label>
+                  <div className="relative">
+                    <input
+                      type={showPass ? 'text' : 'password'}
+                      value={form.password}
+                      onChange={e => setForm({ ...form, password: e.target.value })}
+                      placeholder="e.g. Pass@1234 (Min 8 chars)"
+                      className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-[14px] outline-none focus:border-regenesys-purple focus:ring-2 focus:ring-regenesys-purple/10 transition-all placeholder:text-gray-400 pr-12"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPass(!showPass)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[12px] font-bold text-regenesys-navy/70 uppercase tracking-wider mb-2 block">Confirm Password</label>
+                  <input
+                    type="password"
+                    value={form.confirmPassword}
+                    onChange={e => setForm({ ...form, confirmPassword: e.target.value })}
+                    placeholder="Re-enter your password"
+                    className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-[14px] outline-none focus:border-regenesys-purple focus:ring-2 focus:ring-regenesys-purple/10 transition-all placeholder:text-gray-400"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3.5 bg-regenesys-navy text-white rounded-xl font-bold text-[14px] hover:bg-regenesys-purple transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4 shadow-lg shadow-regenesys-navy/10"
+                >
+                  {loading ? (
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <>Continue <ArrowRight size={16} /></>
+                  )}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleOtpSubmit} className="space-y-8">
+                <div className="flex justify-between gap-2 sm:gap-3">
+                  {otp.map((data, index) => (
+                    <input
+                      key={index}
+                      type="text"
+                      maxLength="1"
+                      ref={el => otpRefs.current[index] = el}
+                      value={data}
+                      onChange={e => handleOtpChange(e, index)}
+                      onKeyDown={e => handleOtpKeyDown(e, index)}
+                      onPaste={handleOtpPaste}
+                      className="w-12 h-14 sm:w-14 sm:h-16 text-center text-[22px] font-black bg-white border border-gray-200 rounded-xl outline-none focus:border-regenesys-purple focus:ring-2 focus:ring-regenesys-purple/10 transition-all text-regenesys-navy shadow-sm"
+                    />
+                  ))}
+                </div>
+
+                <div className="space-y-4">
+                  <button
+                    type="submit"
+                    disabled={loading || otp.join('').length < 6}
+                    className="w-full py-3.5 bg-regenesys-purple text-white rounded-xl font-bold text-[14px] hover:bg-regenesys-purple-dark transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-regenesys-purple/20"
+                  >
+                    {loading ? (
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <>Verify & Create Account <ShieldCheck size={16} /></>
+                    )}
+                  </button>
+
+                  <button 
+                    type="button" 
+                    onClick={() => { setStep(1); setOtp(new Array(6).fill('')); setError(''); }}
+                    className="w-full py-3 text-[13px] font-bold text-gray-500 hover:text-regenesys-navy transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    ← Back to edit details
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {step === 1 && (
+              <>
+                <p className="text-center text-[13px] text-regenesys-muted mt-8">
+                  Already have an account?{' '}
+                  <Link to="/login" className="text-regenesys-purple font-bold hover:underline">Sign In</Link>
+                </p>
+
+                <div className="mt-10 pt-6 border-t border-gray-100 text-center">
+                  <Link to="/" className="text-[12px] text-regenesys-muted hover:text-regenesys-navy transition-colors">
+                    ← Back to Regenesys Corporate Education
+                  </Link>
+                </div>
+              </>
+            )}
+
+            {step === 2 && (
+              <p className="text-center text-[13px] text-regenesys-muted mt-8">
+                Didn't receive the code?{' '}
+                <button type="button" className="text-regenesys-purple font-bold hover:underline">
+                  Resend Code
+                </button>
+              </p>
+            )}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );
