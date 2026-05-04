@@ -1,8 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
-import { Sparkles, X, Send, MessageSquare, BookOpen, Bot } from 'lucide-react';
+import { 
+  Sparkles, X, MessageSquare, BookOpen, 
+  Plus, MoreVertical, ArrowRight, SquarePen 
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-
+const suggestedQueries = [
+  "What programs are available?",
+  "How do I enrol?",
+  "Tell me about fees"
+];
 
 const RightSidebarAI = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,11 +26,11 @@ const RightSidebarAI = () => {
     }
   }, [messages, isTyping]);
 
-  const handleSend = (e) => {
-    e?.preventDefault();
-    if (!input.trim() || isTyping) return;
+  const handleSend = (text) => {
+    const msg = typeof text === 'string' ? text : input;
+    if (!msg.trim() || isTyping) return;
 
-    const userMsg = { role: 'user', text: input };
+    const userMsg = { role: 'user', text: msg };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setIsTyping(true);
@@ -33,91 +40,81 @@ const RightSidebarAI = () => {
       setIsTyping(false);
       setMessages(prev => [...prev, { 
         role: 'ai', 
-        text: "That's a great question! For more details about our programmes, you can visit the 'Programmes' section or I can give you a summary here." 
+        text: "Regenesys offers a variety of corporate training programmes including Gen AI, ESG, and Leadership Mastery. For a full list, you can visit our Programmes page or ask me about a specific topic!" 
       }]);
     }, 1500);
   };
 
   return (
-    <div className="fixed right-0 top-1/2 -translate-y-1/2 z-[100] flex items-center">
+    <div className="fixed right-0 top-0 bottom-0 z-[100] flex items-stretch">
       {/* Mini Bar - Gmail Style */}
-      {!isOpen && (
-        <div className="bg-white border border-gray-200 border-r-0 rounded-l-2xl shadow-premium-lg p-2 flex flex-col gap-4">
-          <button 
-            onClick={() => setIsOpen(true)}
-            className="w-10 h-10 rounded-xl bg-regenesys-purple/10 text-regenesys-purple flex items-center justify-center hover:bg-regenesys-purple hover:text-white transition-all shadow-sm group"
-            title="Regenesys AI Assistant"
-          >
-            <Sparkles size={20} className="group-hover:scale-110 transition-transform" />
-          </button>
-          <div className="h-px bg-gray-100 mx-1" />
-          <button className="w-10 h-10 rounded-xl text-gray-400 flex items-center justify-center hover:bg-gray-100 transition-all">
-            <BookOpen size={20} />
-          </button>
-          <button className="w-10 h-10 rounded-xl text-gray-400 flex items-center justify-center hover:bg-gray-100 transition-all">
-            <MessageSquare size={20} />
-          </button>
-        </div>
-      )}
+      <div className="w-[56px] bg-white border-l border-gray-200 flex flex-col items-center py-4 gap-6 shrink-0 z-[102]">
+        <button 
+          onClick={() => setIsOpen(!isOpen)}
+          className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${isOpen ? 'bg-indigo-50 text-regenesys-purple shadow-inner' : 'text-gray-500 hover:bg-gray-100'}`}
+          title="Regenesys AI"
+        >
+          <Sparkles size={20} className={isOpen ? 'scale-110' : ''} />
+        </button>
+        <div className="w-8 h-px bg-gray-100" />
+        <button className="w-10 h-10 rounded-full text-gray-400 flex items-center justify-center hover:bg-gray-100 transition-all">
+          <BookOpen size={20} />
+        </button>
+        <button className="w-10 h-10 rounded-full text-gray-400 flex items-center justify-center hover:bg-gray-100 transition-all">
+          <MessageSquare size={20} />
+        </button>
+      </div>
 
-      {/* Expanded Panel */}
+      {/* Expanded Panel - Matches Gemini Screenshot */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ x: 400, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: 400, opacity: 0 }}
-            className="fixed right-0 top-0 bottom-0 w-[350px] bg-white shadow-2xl border-l border-gray-200 flex flex-col z-[101]"
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: 350, opacity: 1 }}
+            exit={{ width: 0, opacity: 0 }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="bg-white border-l border-gray-200 flex flex-col shadow-[-10px_0_30px_rgba(0,0,0,0.05)] overflow-hidden"
           >
             {/* Header */}
-            <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-white">
+            <div className="p-4 flex items-center justify-between bg-white border-b border-gray-50">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-regenesys-purple flex items-center justify-center">
-                  <Sparkles size={16} className="text-white" />
-                </div>
-                <div>
-                  <h3 className="text-[14px] font-bold text-regenesys-navy leading-none mb-1">Regenesys AI</h3>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Online Assistant</span>
-                  </div>
-                </div>
+                <button className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-500">
+                  <Sparkles size={18} />
+                </button>
+                <h3 className="text-[16px] font-medium text-gray-700">Regenesys AI</h3>
               </div>
-              <button 
-                onClick={() => setIsOpen(false)}
-                className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 transition-colors"
-              >
-                <X size={18} />
-              </button>
+              <div className="flex items-center gap-1">
+                <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-400">
+                  <SquarePen size={18} />
+                </button>
+                <button 
+                  onClick={() => setIsOpen(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg text-gray-400"
+                >
+                  <X size={18} />
+                </button>
+              </div>
             </div>
 
             {/* Chat Messages */}
             <div 
               ref={scrollRef}
-              className="flex-1 overflow-y-auto p-5 space-y-5 bg-[#fafbfc]"
+              className="flex-1 overflow-y-auto p-4 space-y-6"
             >
               {messages.map((msg, i) => (
-                <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
-                  {msg.role === 'ai' && (
-                    <div className="w-7 h-7 rounded-lg bg-indigo-50 text-regenesys-purple flex items-center justify-center shrink-0 mt-1">
-                      <Bot size={14} />
-                    </div>
-                  )}
-                  <div className={`max-w-[85%] px-4 py-3 rounded-2xl text-[13px] leading-relaxed shadow-sm ${
+                <div key={i} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                   <div className={`max-w-[90%] px-4 py-2.5 rounded-2xl text-[14px] leading-relaxed ${
                     msg.role === 'user' 
-                      ? 'bg-regenesys-purple text-white rounded-tr-none' 
-                      : 'bg-white text-gray-700 rounded-tl-none border border-gray-100'
+                      ? 'bg-indigo-50 text-gray-700 rounded-tr-none' 
+                      : 'bg-white border border-gray-200 text-gray-700 rounded-tl-none'
                   }`}>
                     {msg.text}
                   </div>
                 </div>
               ))}
               {isTyping && (
-                <div className="flex gap-3">
-                  <div className="w-7 h-7 rounded-lg bg-indigo-50 text-regenesys-purple flex items-center justify-center shrink-0">
-                    <Bot size={14} />
-                  </div>
-                  <div className="bg-white border border-gray-100 px-4 py-3 rounded-2xl rounded-tl-none shadow-sm">
+                <div className="flex items-start">
+                  <div className="bg-gray-50 px-4 py-2 rounded-2xl rounded-tl-none">
                     <div className="flex gap-1">
                       <div className="w-1.5 h-1.5 rounded-full bg-gray-300 animate-bounce" />
                       <div className="w-1.5 h-1.5 rounded-full bg-gray-300 animate-bounce [animation-delay:0.2s]" />
@@ -126,33 +123,58 @@ const RightSidebarAI = () => {
                   </div>
                 </div>
               )}
+
+              {/* Suggested Questions Area */}
+              {!isTyping && messages.length < 5 && (
+                <div className="pt-4 flex flex-col gap-2">
+                  <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">Suggested</p>
+                  {suggestedQueries.map((q, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handleSend(q)}
+                      className="w-fit text-left px-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-[13px] text-gray-600 hover:bg-indigo-50 hover:border-regenesys-purple/30 transition-all"
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Input */}
-            <div className="p-4 border-t border-gray-100 bg-white">
-              <form 
-                onSubmit={handleSend}
-                className="relative flex items-center bg-gray-50 rounded-xl border border-gray-200 focus-within:border-regenesys-purple/50 focus-within:bg-white transition-all overflow-hidden"
-              >
-                <input 
-                  type="text"
+            {/* Input - Matches the Screenshot style */}
+            <div className="p-4 bg-white">
+              <div className="bg-[#f0f4f9] rounded-3xl p-3 border border-transparent focus-within:bg-white focus-within:border-gray-200 focus-within:shadow-sm transition-all">
+                <textarea 
+                  rows={1}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask a question..."
-                  className="w-full px-4 py-3 text-[13px] bg-transparent outline-none text-gray-700"
+                  onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }}}
+                  placeholder="Ask Regenesys AI"
+                  className="w-full bg-transparent border-none outline-none text-[14px] text-gray-700 resize-none px-2 mb-2"
+                  style={{ minHeight: '40px' }}
                 />
-                <button 
-                  type="submit"
-                  disabled={!input.trim() || isTyping}
-                  className={`p-2 mr-1 rounded-lg transition-all ${
-                    input.trim() && !isTyping ? 'text-regenesys-purple hover:bg-regenesys-purple/10' : 'text-gray-300'
-                  }`}
-                >
-                  <Send size={18} />
-                </button>
-              </form>
-              <div className="text-[10px] text-center text-gray-400 mt-3">
-                Powered by Regenesys PrivateGPT
+                <div className="flex items-center justify-between px-1">
+                   <div className="flex items-center gap-2">
+                     <button className="p-1.5 text-gray-400 hover:bg-gray-200 rounded-lg transition-colors">
+                       <Plus size={18} />
+                     </button>
+                     <button className="p-1.5 text-gray-400 hover:bg-gray-200 rounded-lg transition-colors">
+                       <MoreVertical size={18} />
+                     </button>
+                   </div>
+                   <button 
+                     onClick={() => handleSend()}
+                     disabled={!input.trim() || isTyping}
+                     className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                       input.trim() && !isTyping ? 'bg-regenesys-purple text-white shadow-md hover:scale-105' : 'bg-gray-200 text-gray-400'
+                     }`}
+                   >
+                     <ArrowRight size={20} />
+                   </button>
+                </div>
+              </div>
+              <div className="text-[10px] text-center text-gray-400 mt-4">
+                Gemini in Workspace can make mistakes. <span className="underline cursor-pointer">Learn more</span>
               </div>
             </div>
           </motion.div>
