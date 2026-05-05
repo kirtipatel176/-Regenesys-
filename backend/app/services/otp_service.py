@@ -4,13 +4,14 @@ OTP generation, storage, and email delivery service.
 OTPs are stored in Redis with a configurable TTL (default 5 minutes).
 Emails are sent via SMTP (async-compatible via ``aiosmtplib``).
 """
+
 import logging
 import random
 import string
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 import aiosmtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 
 from app.core.config import settings
 from app.core.redis import redis_client

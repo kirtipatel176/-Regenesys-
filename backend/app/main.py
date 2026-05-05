@@ -3,9 +3,9 @@ from contextlib import asynccontextmanager
 
 import sentry_sdk
 from fastapi import FastAPI
+from fastapi.exceptions import ResponseValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from fastapi.exceptions import ResponseValidationError
 
 from app.api.v1.api import api_router
 from app.core.config import settings
@@ -151,7 +151,6 @@ async def health_deep_check():
         "redis": redis_status,
         "neo4j": neo4j_status,
     }
-
 
 
 @app.exception_handler(Exception)

@@ -10,7 +10,8 @@ Supported providers:
 
 See ``app.ai.llm_provider`` for the provider abstraction.
 """
-from typing import Any, Dict, List
+
+from typing import Any, List
 
 from app.ai.llm_provider import get_llm_provider
 
@@ -35,19 +36,29 @@ Answer:
 def format_context(chunks: List[Any]) -> str:
     parts = []
     for c in chunks:
-        parts.append(f"--- Document: {c.document.filename} | Page: {c.page_number} | Section: {c.section} ---\n{c.content}")
+        parts.append(
+            f"--- Document: {c.document.filename} | Page: {c.page_number} | Section: {c.section} ---\n{c.content}"
+        )
     return "\n\n".join(parts)
 
 
 def generate_rag_answer(question: str, chunks: List[Any]) -> dict:
     """Synchronous RAG answer generation using the configured LLM provider."""
     if not chunks:
-        return {"text": "No relevant answer found in uploaded documents.", "usage": None, "model": None}
+        return {
+            "text": "No relevant answer found in uploaded documents.",
+            "usage": None,
+            "model": None,
+        }
 
     try:
         provider = get_llm_provider()
     except Exception:
-        return {"text": "No relevant answer found in uploaded documents. (LLM provider not configured)", "usage": None, "model": None}
+        return {
+            "text": "No relevant answer found in uploaded documents. (LLM provider not configured)",
+            "usage": None,
+            "model": None,
+        }
 
     context_text = format_context(chunks)
     prompt = PROMPT_TEMPLATE.format(context=context_text, question=question)
@@ -57,8 +68,13 @@ def generate_rag_answer(question: str, chunks: List[Any]) -> dict:
         return result
     except Exception as e:
         import logging
+
         logging.getLogger(__name__).error("LLM Provider error: %s", e)
-        return {"text": "I am currently unable to connect to the AI service. Please verify the API key configuration.", "usage": None, "model": None}
+        return {
+            "text": "I am currently unable to connect to the AI service. Please verify the API key configuration.",
+            "usage": None,
+            "model": None,
+        }
 
 
 async def generate_rag_answer_stream(question: str, chunks: List[Any]):
@@ -81,5 +97,6 @@ async def generate_rag_answer_stream(question: str, chunks: List[Any]):
             yield chunk_text
     except Exception as e:
         import logging
+
         logging.getLogger(__name__).error("LLM Provider stream error: %s", e)
         yield "\n\n[Error: Unable to connect to the AI service. Please verify the API key configuration.]"

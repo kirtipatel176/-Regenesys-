@@ -49,13 +49,13 @@ def extract_text_from_pdf(file_path: str, threshold: int = 50) -> str:
     text = ""
     with fitz.open(file_path) as doc:
         for page_num, page in enumerate(doc):
-            text += f"\n[PAGE_BREAK:{page_num+1}]\n"
+            text += f"\n[PAGE_BREAK:{page_num + 1}]\n"
             page_text = page.get_text().strip()
 
             # Fallback to multimodal OCR if extracted text is below threshold
             if len(page_text) < threshold:
                 logger.info(
-                    f"Page {page_num+1} text length ({len(page_text)}) below threshold. "
+                    f"Page {page_num + 1} text length ({len(page_text)}) below threshold. "
                     "Triggering Gemini OCR fallback."
                 )
                 # Render page at 2x resolution (approx 144 DPI) for clear OCR

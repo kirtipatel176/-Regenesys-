@@ -35,6 +35,7 @@ expected by ``app.ai.chat.generate_rag_answer``:
   - ``section``
   - ``relevance_score``  (float, higher = more relevant)
 """
+
 import logging
 from dataclasses import dataclass
 from typing import List, Optional
@@ -48,6 +49,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Data container (replaces the SQLAlchemy DocumentChunk ORM object)
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class RetrievedChunk:
@@ -69,6 +71,7 @@ class RetrievedChunk:
 
 class _FakeDocument:
     """Thin proxy so RetrievedChunk.document.filename / .id work."""
+
     __slots__ = ("id", "filename")
 
     def __init__(self, id: str, filename: str):
@@ -79,6 +82,7 @@ class _FakeDocument:
 # ---------------------------------------------------------------------------
 # Main retrieval function
 # ---------------------------------------------------------------------------
+
 
 async def retrieve_relevant_chunks(
     user_id: str,
@@ -114,7 +118,6 @@ async def retrieve_relevant_chunks(
     chunks: List[RetrievedChunk] = []
 
     async with get_neo4j_session() as session:
-
         # ------------------------------------------------------------------ #
         # 1. Concept-match traversal
         # ------------------------------------------------------------------ #
@@ -174,7 +177,9 @@ async def retrieve_relevant_chunks(
                 # them directly.
             ]
             # Re-build from the actual returned chunk_ids
-            top_chunk_ids = [rec["chunk_id"] for rec in records[:limit]] if records else []
+            top_chunk_ids = (
+                [rec["chunk_id"] for rec in records[:limit]] if records else []
+            )
 
             if top_chunk_ids:
                 nb_result = await session.run(
@@ -190,13 +195,16 @@ async def retrieve_relevant_chunks(
                            neighbour.section     AS section,
                            d.id                  AS document_id,
                            d.filename            AS filename
-                    """ % context_window,
+                    """
+                    % context_window,
                     chunk_ids=top_chunk_ids,
                     user_id=user_id,
                 )
                 nb_records = await nb_result.data()
 
-                existing_ids = {c.content[:50] for c in chunks}  # deduplicate by content prefix
+                existing_ids = {
+                    c.content[:50] for c in chunks
+                }  # deduplicate by content prefix
                 for rec in nb_records:
                     prefix = rec["content"][:50]
                     if prefix not in existing_ids:

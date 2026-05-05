@@ -13,6 +13,7 @@ Pipeline
       ↓
   ProcessingStatus.completed saved to Postgres Document row
 """
+
 import asyncio
 import logging
 from uuid import UUID
@@ -92,5 +93,4 @@ def process_document_task(self, document_id: str) -> None:
             self.max_retries,
             exc,
         )
-        raise self.retry(exc=exc, countdown=2 ** self.request.retries)
-
+        raise self.retry(exc=exc, countdown=2**self.request.retries)

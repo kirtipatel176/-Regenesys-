@@ -18,10 +18,10 @@ Adding a new provider
 3. Register it in ``_PROVIDER_REGISTRY``.
 4. Set ``LLM_PROVIDER=<key>`` in ``.env``.
 """
-import json
+
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, AsyncGenerator, Dict, List, Optional
+from typing import Any, AsyncGenerator, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Abstract interface
 # ---------------------------------------------------------------------------
+
 
 class LLMProvider(ABC):
     """Base class that every LLM provider must implement."""
@@ -67,11 +68,13 @@ class LLMProvider(ABC):
 # Gemini provider
 # ---------------------------------------------------------------------------
 
+
 class GeminiProvider(LLMProvider):
     """Google Gemini via the ``google-genai`` SDK."""
 
     def __init__(self):
         from google import genai
+
         from app.core.config import settings
 
         if not settings.GEMINI_API_KEY:
@@ -119,6 +122,7 @@ class GeminiProvider(LLMProvider):
 # AWS Bedrock provider  (Anthropic Claude via Bedrock)
 # ---------------------------------------------------------------------------
 
+
 class BedrockProvider(LLMProvider):
     """
     AWS Bedrock with Anthropic Claude models.
@@ -134,6 +138,7 @@ class BedrockProvider(LLMProvider):
 
     def __init__(self):
         import boto3
+
         from app.core.config import settings
 
         session_kwargs: Dict[str, Any] = {}

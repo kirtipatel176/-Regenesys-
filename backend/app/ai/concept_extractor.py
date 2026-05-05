@@ -22,6 +22,7 @@ the spaCy model for production use:
 
     python -m spacy download en_core_web_sm
 """
+
 import logging
 import re
 from typing import List
@@ -34,12 +35,14 @@ logger = logging.getLogger(__name__)
 
 _nlp = None
 
+
 def _get_nlp():
     global _nlp
     if _nlp is not None:
         return _nlp
     try:
         import spacy
+
         _nlp = spacy.load("en_core_web_sm", disable=["ner"])
         logger.info("spaCy model 'en_core_web_sm' loaded for concept extraction.")
     except OSError:
@@ -56,18 +59,101 @@ def _get_nlp():
 # Minimal English stopword list for the fallback path
 # ---------------------------------------------------------------------------
 
-_STOPWORDS = frozenset({
-    "a", "an", "the", "and", "or", "but", "in", "on", "at", "to", "for",
-    "of", "with", "by", "from", "up", "about", "into", "over", "after",
-    "is", "are", "was", "were", "be", "been", "being", "have", "has",
-    "had", "do", "does", "did", "will", "would", "could", "should", "may",
-    "might", "shall", "can", "need", "dare", "ought", "used", "not", "no",
-    "nor", "so", "yet", "both", "either", "neither", "each", "few", "more",
-    "most", "other", "some", "such", "than", "too", "very", "just", "that",
-    "this", "these", "those", "i", "me", "my", "we", "our", "you", "your",
-    "he", "his", "she", "her", "it", "its", "they", "their", "what",
-    "which", "who", "whom", "how", "when", "where", "why",
-})
+_STOPWORDS = frozenset(
+    {
+        "a",
+        "an",
+        "the",
+        "and",
+        "or",
+        "but",
+        "in",
+        "on",
+        "at",
+        "to",
+        "for",
+        "of",
+        "with",
+        "by",
+        "from",
+        "up",
+        "about",
+        "into",
+        "over",
+        "after",
+        "is",
+        "are",
+        "was",
+        "were",
+        "be",
+        "been",
+        "being",
+        "have",
+        "has",
+        "had",
+        "do",
+        "does",
+        "did",
+        "will",
+        "would",
+        "could",
+        "should",
+        "may",
+        "might",
+        "shall",
+        "can",
+        "need",
+        "dare",
+        "ought",
+        "used",
+        "not",
+        "no",
+        "nor",
+        "so",
+        "yet",
+        "both",
+        "either",
+        "neither",
+        "each",
+        "few",
+        "more",
+        "most",
+        "other",
+        "some",
+        "such",
+        "than",
+        "too",
+        "very",
+        "just",
+        "that",
+        "this",
+        "these",
+        "those",
+        "i",
+        "me",
+        "my",
+        "we",
+        "our",
+        "you",
+        "your",
+        "he",
+        "his",
+        "she",
+        "her",
+        "it",
+        "its",
+        "they",
+        "their",
+        "what",
+        "which",
+        "who",
+        "whom",
+        "how",
+        "when",
+        "where",
+        "why",
+    }
+)
 
 
 def _fallback_extract(text: str, min_len: int = 4) -> List[str]:
@@ -79,6 +165,7 @@ def _fallback_extract(text: str, min_len: int = 4) -> List[str]:
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
+
 
 def extract_concepts(text: str, max_concepts: int = 20) -> List[str]:
     """

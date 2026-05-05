@@ -12,7 +12,7 @@ from app.core.config import settings
 from app.core.redis import check_rate_limit, clear_rate_limit
 from app.models.refresh_token import RefreshToken
 from app.models.user import User
-from app.schemas.token import RefreshRequest, Token, TokenPayload
+from app.schemas.token import RefreshRequest, Token
 from app.schemas.user import (
     OTPResendRequest,
     OTPVerifyRequest,
@@ -27,6 +27,7 @@ router = APIRouter()
 # ------------------------------------------------------------------ #
 # Registration + OTP Verification
 # ------------------------------------------------------------------ #
+
 
 @router.post(
     "/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED
@@ -135,6 +136,7 @@ async def resend_otp_endpoint(
 # Login (with verification check)
 # ------------------------------------------------------------------ #
 
+
 @router.post("/login", response_model=Token)
 async def login(
     request: Request,
@@ -200,6 +202,7 @@ async def login(
 # ------------------------------------------------------------------ #
 # Token Refresh
 # ------------------------------------------------------------------ #
+
 
 @router.post("/refresh", response_model=Token)
 async def refresh_token(
@@ -293,6 +296,7 @@ async def refresh_token(
 # Logout
 # ------------------------------------------------------------------ #
 
+
 @router.post("/logout")
 async def logout(
     request_data: RefreshRequest,
@@ -334,7 +338,7 @@ async def logout_all(
     # Revoke all unrevoked tokens for the user
     result = await db.execute(
         select(RefreshToken).filter(
-            RefreshToken.user_id == current_user.id, RefreshToken.revoked == False
+            RefreshToken.user_id == current_user.id, RefreshToken.revoked.is_(False)
         )
     )
     tokens = result.scalars().all()

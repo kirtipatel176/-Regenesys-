@@ -26,6 +26,7 @@ Entry point
 
     await delete_document_graph(document_id)
 """
+
 import logging
 from datetime import datetime, timezone
 from typing import List
@@ -38,6 +39,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
+
 
 async def build_document_graph(
     document_id: str,
@@ -67,7 +69,9 @@ async def build_document_graph(
         ``content``, ``section``, ``page_number``, ``token_count``.
     """
     if not chunks:
-        logger.warning("build_document_graph called with no chunks for doc %s", document_id)
+        logger.warning(
+            "build_document_graph called with no chunks for doc %s", document_id
+        )
         return
 
     async with get_neo4j_session() as session:

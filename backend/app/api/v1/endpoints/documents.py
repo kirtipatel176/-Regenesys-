@@ -60,11 +60,11 @@ async def upload_document(
     try:
         ext = os.path.splitext(file.filename)[1]
         secure_filename = f"{uuid.uuid4()}{ext}"
-        
+
         # Ensure directory exists
         abs_upload_dir = os.path.abspath(settings.UPLOAD_DIR)
         os.makedirs(abs_upload_dir, exist_ok=True)
-        
+
         file_path = os.path.join(abs_upload_dir, secure_filename)
         logger.info(f"Uploading file to: {file_path}")
 
@@ -96,8 +96,8 @@ async def upload_document(
             detail={
                 "message": "Failed to save file on server",
                 "error": str(e),
-                "path": settings.UPLOAD_DIR
-            }
+                "path": settings.UPLOAD_DIR,
+            },
         )
 
 
