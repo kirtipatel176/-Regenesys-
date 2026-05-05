@@ -4,7 +4,7 @@ import shutil
 import uuid
 from typing import List
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
@@ -14,7 +14,7 @@ from app.models.document import Document, ProcessingStatus
 from app.models.user import User
 from app.schemas.document import DocumentResponse
 from app.services.graph_builder import delete_document_graph
-from app.workers.tasks import process_document_task
+from app.workers.tasks import process_document_async
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -30,6 +30,7 @@ ALLOWED_MIME_TYPES = {
     "/upload", response_model=DocumentResponse, status_code=status.HTTP_201_CREATED
 )
 async def upload_document(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     current_user: User = Depends(deps.get_current_user),
     db: AsyncSession = Depends(deps.get_db),
@@ -70,8 +71,8 @@ async def upload_document(
     await db.refresh(document)
 
     # Trigger background processing — parse, chunk, and build Neo4j graph
-    process_document_task.delay(str(document.id))
-    logger.info("Queued processing task for document %s", document.id)
+    background_tasks.add_task(process_document_async, str(document.id))
+    logger.info("Queued background task for document %s", document.id)
 
     return document
 

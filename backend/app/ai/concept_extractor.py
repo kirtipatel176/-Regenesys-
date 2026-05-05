@@ -40,7 +40,7 @@ def _get_nlp():
         return _nlp
     try:
         import spacy
-        _nlp = spacy.load("en_core_web_sm", disable=["parser", "ner"])
+        _nlp = spacy.load("en_core_web_sm", disable=["ner"])
         logger.info("spaCy model 'en_core_web_sm' loaded for concept extraction.")
     except OSError:
         logger.warning(
