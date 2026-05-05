@@ -1,18 +1,16 @@
 from typing import AsyncGenerator, List
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.orm import selectinload
 
 from app.ai.chat import generate_rag_answer, generate_rag_answer_stream
 from app.ai.retrieval import retrieve_relevant_chunks
 from app.api import deps
 from app.db.session import AsyncSessionLocal
 from app.models.chat import ChatMessage, ChatSession, RoleType
-from app.models.document import Document
 from app.models.user import User
 from app.schemas.chat import (
     ChatAskRequest,
@@ -103,6 +101,7 @@ async def ask_question(
         sources=sources,
         confidence_score=0.95 if top_chunks else 0.0,
     )
+
 
 @router.post("/ask/stream")
 async def ask_question_stream(

@@ -4,7 +4,15 @@ import shutil
 import uuid
 from typing import List
 
-from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile, status
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    HTTPException,
+    UploadFile,
+    status,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
@@ -132,4 +140,3 @@ async def delete_document(
     await db.delete(document)
     await db.commit()
     return None
-

@@ -11,9 +11,10 @@ Usage in FastAPI endpoints / dependencies:
     async with get_neo4j_session() as session:
         result = await session.run("MATCH (n) RETURN n LIMIT 1")
 """
+
 import logging
 
-from neo4j import AsyncGraphDatabase, AsyncDriver, AsyncSession
+from neo4j import AsyncDriver, AsyncGraphDatabase, AsyncSession
 
 from app.core.config import settings
 
@@ -68,6 +69,7 @@ async def ping_neo4j() -> bool:
 # ---------------------------------------------------------------------------
 # FastAPI dependency helper
 # ---------------------------------------------------------------------------
+
 
 def get_neo4j_session() -> AsyncSession:  # type: ignore[return]
     """

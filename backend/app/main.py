@@ -1,17 +1,23 @@
 import logging
-import sentry_sdk
 from contextlib import asynccontextmanager
 
+import sentry_sdk
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import ResponseValidationError
 
 from app.api.v1.api import api_router
 from app.core.config import settings
-from app.core.middleware import SecurityHeadersMiddleware, RequestIDMiddleware, GlobalRateLimitMiddleware
 from app.core.logging_config import setup_logging
-from app.db.session import engine
-from app.db.neo4j import ping_neo4j, close_neo4j_driver, get_neo4j_driver
+from app.core.middleware import (
+    GlobalRateLimitMiddleware,
+    RequestIDMiddleware,
+    SecurityHeadersMiddleware,
+)
 from app.core.redis import redis_client
+from app.db.neo4j import close_neo4j_driver, get_neo4j_driver, ping_neo4j
+from app.db.session import engine
 
 # Initialize Production Logging
 setup_logging()
@@ -27,6 +33,7 @@ if settings.SENTRY_DSN:
     )
     logger.info("Sentry initialized")
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # ------------------------------------------------------------------ #
@@ -35,7 +42,7 @@ async def lifespan(app: FastAPI):
 
     # 1. DB Connection Check
     try:
-        async with engine.connect() as conn:
+        async with engine.connect() as _:
             pass
         logger.info("Database connection successful.")
     except Exception as e:
@@ -63,11 +70,15 @@ async def lifespan(app: FastAPI):
     if settings.LLM_PROVIDER.lower() == "gemini" and (
         not settings.GEMINI_API_KEY or "your_gemini_api_key" in settings.GEMINI_API_KEY
     ):
-        logger.warning("LLM_PROVIDER is 'gemini' but GEMINI_API_KEY is missing or invalid.")
+        logger.warning(
+            "LLM_PROVIDER is 'gemini' but GEMINI_API_KEY is missing or invalid."
+        )
     elif settings.LLM_PROVIDER.lower() == "bedrock" and (
         not settings.AWS_ACCESS_KEY_ID or "your_aws" in settings.AWS_ACCESS_KEY_ID
     ):
-        logger.warning("LLM_PROVIDER is 'bedrock' but AWS credentials are missing or placeholder.")
+        logger.warning(
+            "LLM_PROVIDER is 'bedrock' but AWS credentials are missing or placeholder."
+        )
 
     yield
 
@@ -78,10 +89,11 @@ async def lifespan(app: FastAPI):
     await redis_client.aclose()
     await close_neo4j_driver()
 
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # Add Request Tracking and Security Middlewares
@@ -96,7 +108,7 @@ app.add_middleware(
         "http://localhost:3000",
         "http://localhost:8000",
         "http://localhost:5173",
-        "https://private-gpt-ochre.vercel.app"
+        "https://private-gpt-ochre.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -115,7 +127,7 @@ async def health_check():
 async def health_deep_check():
     db_status = "ok"
     try:
-        async with engine.connect() as conn:
+        async with engine.connect() as _:
             pass
     except Exception:
         db_status = "error"
@@ -128,7 +140,11 @@ async def health_deep_check():
 
     neo4j_status = "ok" if await ping_neo4j() else "error"
 
-    status = "ok" if db_status == "ok" and redis_status == "ok" and neo4j_status == "ok" else "error"
+    status = (
+        "ok"
+        if db_status == "ok" and redis_status == "ok" and neo4j_status == "ok"
+        else "error"
+    )
     return {
         "status": status,
         "database": db_status,
@@ -136,24 +152,25 @@ async def health_deep_check():
         "neo4j": neo4j_status,
     }
 
-from fastapi.responses import JSONResponse
-import traceback
+
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
-    import logging
-    logging.error(f"Global exception: {exc}")
+    logger.error(f"Global exception: {exc}")
     return JSONResponse(
         status_code=500,
-        content={"detail": "Internal Server Error", "error_message": str(exc), "error_type": str(type(exc))}
+        content={
+            "detail": "Internal Server Error",
+            "error_message": str(exc),
+            "error_type": str(type(exc)),
+        },
     )
 
-from fastapi.exceptions import ResponseValidationError
+
 @app.exception_handler(ResponseValidationError)
 async def validation_exception_handler(request, exc):
-    import logging
-    logging.error(f"Response validation error: {exc}")
+    logger.error(f"Response validation error: {exc}")
     return JSONResponse(
         status_code=500,
-        content={"detail": "Response Validation Error", "errors": exc.errors()}
+        content={"detail": "Response Validation Error", "errors": exc.errors()},
     )
