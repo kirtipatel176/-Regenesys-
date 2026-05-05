@@ -82,7 +82,7 @@ def get_neo4j_session() -> AsyncSession:  # type: ignore[return]
     For FastAPI endpoint injection use `neo4j_session_dep` below.
     """
     driver = get_neo4j_driver()
-    return driver.session(database="neo4j")
+    return driver.session()
 
 
 async def neo4j_session_dep():
