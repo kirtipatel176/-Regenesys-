@@ -10,6 +10,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { getAIResponse } from '../utils/aiUtils';
+import api from '../api';
 
 const GeminiIcon = ({ className = "w-5 h-5" }) => (
   <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
@@ -60,23 +61,37 @@ const PrivateGPTPage = () => {
     ];
   });
 
-  const [sources, setSources] = useState(() => {
-    const stored = localStorage.getItem(SOURCES_KEY);
-    if (stored) {
-      try {
-        return JSON.parse(stored);
-      } catch (e) {
-        console.error("Failed to parse stored sources", e);
-      }
+  const [sources, setSources] = useState([]);
+
+  // Fetch sources from backend
+  const fetchSources = async () => {
+    try {
+      const response = await api.get('/documents');
+      const mapped = response.data.map(doc => ({
+        id: doc.id,
+        name: doc.original_name,
+        pages: doc.page_count || '?',
+        type: doc.mime_type.split('/').pop().toUpperCase(),
+        status: doc.processing_status
+      }));
+      setSources(mapped);
+    } catch (error) {
+      console.error("Failed to fetch documents:", error);
     }
-    return [
-      { id: 'src-1', name: 'programmes.pdf', pages: 24, type: 'PDF' },
-      { id: 'src-2', name: 'esg_manual.pdf', pages: 18, type: 'PDF' },
-      { id: 'src-3', name: 'faq.md', pages: 8, type: 'Markdown' },
-      { id: 'src-4', name: 'success_stories.pdf', pages: 32, type: 'PDF' },
-      { id: 'src-5', name: 'company_overview.pdf', pages: 12, type: 'PDF' },
-    ];
-  });
+  };
+
+  useEffect(() => {
+    if (isAdmin) {
+      fetchSources();
+      // Poll for status updates if any document is pending/processing
+      const interval = setInterval(() => {
+        if (sources.some(s => s.status === 'pending' || s.status === 'processing')) {
+          fetchSources();
+        }
+      }, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [isAdmin, sources.length]); // Re-run if count changes or on mount
 
   // Persist conversations to localStorage
   useEffect(() => {
@@ -127,11 +142,10 @@ const PrivateGPTPage = () => {
     }
   }, [toast]);
 
-  const handleFileUpload = (e) => {
+  const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file || uploading) return;
 
-    // Prevent duplicates (checking both current sources and any pending upload)
     if (sources.some(s => s.name === file.name)) {
       setToast({ show: true, message: "This file is already uploaded." });
       e.target.value = '';
@@ -139,41 +153,45 @@ const PrivateGPTPage = () => {
     }
 
     setUploading(true);
-    setUploadProgress(0);
+    setUploadProgress(20);
 
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 10;
-      setUploadProgress(progress);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
 
-      if (progress >= 100) {
-        clearInterval(interval);
-        
-        // Finalize upload after a tiny delay for visual effect
-        setTimeout(() => {
-          setUploading(false);
-          setSources(prevSources => {
-            // Double check inside the setter to be absolutely sure
-            if (prevSources.some(s => s.name === file.name)) return prevSources;
-            
-            return [
-              { 
-                id: `src-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                name: file.name, 
-                pages: Math.floor(Math.random() * 20) + 1, 
-                type: file.name.split('.').pop().toUpperCase() 
-              },
-              ...prevSources
-            ];
-          });
-          e.target.value = '';
-        }, 100);
-      }
-    }, 150);
+      const response = await api.post('/documents/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        },
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          setUploadProgress(percentCompleted);
+        }
+      });
+
+      setUploadProgress(100);
+      setTimeout(() => {
+        setUploading(false);
+        fetchSources(); // Refresh list from backend
+        setToast({ show: true, message: "Document uploaded successfully!" });
+      }, 500);
+    } catch (error) {
+      console.error("Upload failed:", error);
+      setUploading(false);
+      setToast({ show: true, message: "Upload failed. Please try again." });
+    }
+    e.target.value = '';
   };
 
-  const handleDeleteSource = (id) => {
-    setSources(prev => prev.filter(s => s.id !== id));
+  const handleDeleteSource = async (id) => {
+    try {
+      await api.delete(`/documents/${id}`);
+      setSources(prev => prev.filter(s => s.id !== id));
+      setToast({ show: true, message: "Document deleted." });
+    } catch (error) {
+      console.error("Delete failed:", error);
+      setToast({ show: true, message: "Failed to delete document." });
+    }
   };
 
   const newConversation = () => {
