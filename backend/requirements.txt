@@ -17,7 +17,7 @@ alembic~=1.13.0
 neo4j~=5.20.0
 
 # Auth & Security
-bcrypt~=4.1.0
+bcrypt==3.2.2
 passlib[bcrypt]~=1.7.4
 pyjwt~=2.8.0
 
