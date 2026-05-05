@@ -56,7 +56,7 @@ class Settings(BaseSettings):
     BEDROCK_MAX_TOKENS: int = int(os.getenv("BEDROCK_MAX_TOKENS", "4096"))
 
     # File Storage
-    UPLOAD_DIR: str = os.getenv("UPLOAD_DIR", "/storage/uploads")
+    UPLOAD_DIR: str = os.getenv("UPLOAD_DIR", "storage/uploads")
     MAX_UPLOAD_SIZE: int = 25 * 1024 * 1024  # 25 MB
 
     # SMTP (for OTP emails)
