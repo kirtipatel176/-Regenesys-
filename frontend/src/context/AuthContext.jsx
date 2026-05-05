@@ -53,11 +53,19 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = (email, password) => {
-    // Master Access for Testing
+    // Admin Access for Testing
     if (email === 'admin@regenesys.com' && password === 'admin123') {
       const adminUser = { id: 'admin', name: 'Admin User', email: 'admin@regenesys.com', avatar: 'AD' };
       setUser(adminUser);
       localStorage.setItem('regenesys_user', JSON.stringify(adminUser));
+      return { success: true };
+    }
+
+    // Standard User Access for Testing
+    if (email === 'user@regenesys.com' && password === 'user123') {
+      const demoUser = { id: 'user-1', name: 'Demo User', email: 'user@regenesys.com', avatar: 'DU' };
+      setUser(demoUser);
+      localStorage.setItem('regenesys_user', JSON.stringify(demoUser));
       return { success: true };
     }
 
