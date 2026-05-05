@@ -12,6 +12,8 @@ services:
         value: 3.12.3
       - key: SECRET_KEY
         generateValue: true
+      - key: BACKEND_CORS_ORIGINS
+        value: '["https://private-gpt-ochre.vercel.app", "http://localhost:5173", "http://localhost:3000"]'
       - key: POSTGRES_SERVER
         value: dpg-d7t1d5a8qa3s73f3nnq0-a
       - key: POSTGRES_USER
