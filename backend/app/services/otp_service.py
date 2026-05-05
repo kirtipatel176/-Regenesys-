@@ -12,7 +12,6 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 import aiosmtplib
-
 from app.core.config import settings
 from app.core.redis import redis_client
 

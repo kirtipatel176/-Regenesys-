@@ -1,9 +1,8 @@
 import logging
 import sys
 
-from pythonjsonlogger import jsonlogger
-
 from app.core.middleware import request_id_contextvars
+from pythonjsonlogger import jsonlogger
 
 
 class CustomJsonFormatter(jsonlogger.JsonFormatter):

@@ -18,13 +18,12 @@ import asyncio
 import logging
 from uuid import UUID
 
-from sqlalchemy.future import select
-
 from app.db.session import AsyncSessionLocal
 from app.models.document import Document, ProcessingStatus
 from app.services.graph_builder import build_document_graph
 from app.workers.celery_app import celery_app
 from app.workers.document_parser import chunk_text, parse_document
+from sqlalchemy.future import select
 
 logger = logging.getLogger(__name__)
 

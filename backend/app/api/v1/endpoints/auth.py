@@ -1,11 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
 import jwt
-from fastapi import APIRouter, Depends, HTTPException, Request, status
-from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
-
 from app.api import deps
 from app.core import security
 from app.core.config import settings
@@ -20,6 +15,10 @@ from app.schemas.user import (
     UserResponse,
 )
 from app.services.otp_service import create_and_store_otp, send_otp_email, verify_otp
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
 router = APIRouter()
 

@@ -2,11 +2,6 @@ import logging
 from contextlib import asynccontextmanager
 
 import sentry_sdk
-from fastapi import FastAPI
-from fastapi.exceptions import ResponseValidationError
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-
 from app.api.v1.api import api_router
 from app.core.config import settings
 from app.core.logging_config import setup_logging
@@ -18,6 +13,10 @@ from app.core.middleware import (
 from app.core.redis import redis_client
 from app.db.neo4j import close_neo4j_driver, get_neo4j_driver, ping_neo4j
 from app.db.session import engine
+from fastapi import FastAPI
+from fastapi.exceptions import ResponseValidationError
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 # Initialize Production Logging
 setup_logging()

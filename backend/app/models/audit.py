@@ -1,10 +1,9 @@
 import uuid
 
-from sqlalchemy import Column, String
-from sqlalchemy.dialects.postgresql import JSONB, UUID
-
 from app.db.base_class import Base
 from app.models.mixins import TimestampMixin
+from sqlalchemy import Column, String
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 
 
 class AuditLog(TimestampMixin, Base):

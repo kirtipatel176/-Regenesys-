@@ -14,9 +14,8 @@ Usage in FastAPI endpoints / dependencies:
 
 import logging
 
-from neo4j import AsyncDriver, AsyncGraphDatabase, AsyncSession
-
 from app.core.config import settings
+from neo4j import AsyncDriver, AsyncGraphDatabase, AsyncSession
 
 logger = logging.getLogger(__name__)
 

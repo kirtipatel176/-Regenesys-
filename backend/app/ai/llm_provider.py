@@ -73,9 +73,8 @@ class GeminiProvider(LLMProvider):
     """Google Gemini via the ``google-genai`` SDK."""
 
     def __init__(self):
-        from google import genai
-
         from app.core.config import settings
+        from google import genai
 
         if not settings.GEMINI_API_KEY:
             raise RuntimeError(
@@ -138,7 +137,6 @@ class BedrockProvider(LLMProvider):
 
     def __init__(self):
         import boto3
-
         from app.core.config import settings
 
         session_kwargs: Dict[str, Any] = {}

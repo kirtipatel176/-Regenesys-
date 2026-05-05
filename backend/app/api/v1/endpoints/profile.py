@@ -1,11 +1,10 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
-
 from app.api import deps
 from app.models.profile import Profile
 from app.models.user import User
 from app.schemas.profile import ProfileResponse, ProfileUpdate
+from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
 router = APIRouter()
 

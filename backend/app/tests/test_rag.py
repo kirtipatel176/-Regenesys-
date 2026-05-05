@@ -1,5 +1,4 @@
 import pytest
-
 from app.ai.chat import format_context, generate_rag_answer
 
 

@@ -195,8 +195,7 @@ async def retrieve_relevant_chunks(
                            neighbour.section     AS section,
                            d.id                  AS document_id,
                            d.filename            AS filename
-                    """
-                    % context_window,
+                    """ % context_window,
                     chunk_ids=top_chunk_ids,
                     user_id=user_id,
                 )

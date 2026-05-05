@@ -3,9 +3,8 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr, field_validator
-
 from app.models.user import RoleEnum
+from pydantic import BaseModel, EmailStr, field_validator
 
 
 class UserBase(BaseModel):
