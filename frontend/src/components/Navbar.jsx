@@ -105,11 +105,11 @@ const Navbar = ({ onEnrollClick }) => {
           </Link>
         )}
 
-        {user ? (
+        {user?.email === 'admin@regenesys.com' ? (
           <Link to="/private-gpt" className={`hidden md:flex items-center justify-center w-10 h-10 rounded-full transition-all ${useWhiteText ? 'bg-white/15 text-white hover:bg-white/25 border border-white/20' : 'bg-regenesys-purple/10 text-regenesys-purple hover:bg-regenesys-purple/20'}`} title="PrivateGPT Dashboard">
             <ShieldCheck size={18} />
           </Link>
-        ) : (
+        ) : !user && (
           <Link to="/login" className={`hidden md:flex items-center gap-2 px-5 py-2.5 rounded-full text-[13px] font-bold transition-all ${useWhiteText ? 'text-white hover:text-regenesys-gold' : 'text-regenesys-navy hover:text-regenesys-purple'}`}>
             <LogIn size={14} /> Login
           </Link>
