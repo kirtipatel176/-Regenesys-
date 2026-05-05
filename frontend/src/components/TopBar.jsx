@@ -25,7 +25,7 @@ const TopBar = ({ onEnrollClick }) => {
       <div className="flex items-center gap-4">
         <button 
           onClick={onEnrollClick}
-          className="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 sm:px-4 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1 sm:gap-1.5 border border-white/10"
+          className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 border border-white/10 whitespace-nowrap"
         >
           <span className="hidden sm:inline">REQUEST A </span>CALL BACK <ChevronRight size={12} />
         </button>
