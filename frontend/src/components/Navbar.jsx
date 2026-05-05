@@ -90,7 +90,7 @@ const Navbar = ({ onEnrollClick }) => {
         {user ? (
           <button 
             onClick={() => setAiSidebarOpen(true)}
-            className={`hidden md:flex items-center justify-center w-10 h-10 rounded-full transition-all ${useWhiteText ? 'bg-white/15 text-white hover:bg-white/25 border border-white/20' : 'bg-regenesys-purple/10 text-regenesys-purple hover:bg-regenesys-purple/20'}`} 
+            className={`flex items-center justify-center w-10 h-10 rounded-full transition-all ${useWhiteText ? 'bg-white/15 text-white hover:bg-white/25 border border-white/20' : 'bg-regenesys-purple/10 text-regenesys-purple hover:bg-regenesys-purple/20'}`} 
             title="Open AI Assistant"
           >
             <Sparkles size={18} />
@@ -98,7 +98,7 @@ const Navbar = ({ onEnrollClick }) => {
         ) : (
           <Link 
             to="/login"
-            className={`hidden md:flex items-center justify-center w-10 h-10 rounded-full transition-all ${useWhiteText ? 'bg-white/15 text-white hover:bg-white/25 border border-white/20' : 'bg-regenesys-purple/10 text-regenesys-purple hover:bg-regenesys-purple/20'}`} 
+            className={`flex items-center justify-center w-10 h-10 rounded-full transition-all ${useWhiteText ? 'bg-white/15 text-white hover:bg-white/25 border border-white/20' : 'bg-regenesys-purple/10 text-regenesys-purple hover:bg-regenesys-purple/20'}`} 
             title="Login to use AI Assistant"
           >
             <Sparkles size={18} />
