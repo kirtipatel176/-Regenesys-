@@ -160,9 +160,6 @@ const PrivateGPTPage = () => {
       formData.append('file', file);
 
       const response = await api.post('/documents/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        },
         onUploadProgress: (progressEvent) => {
           const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
           setUploadProgress(percentCompleted);
