@@ -48,6 +48,14 @@ backend/storage/uploads/
 *.swp
 *.swo
 
+# Frontend / Node
+node_modules/
+dist-ssr
+*.local
+.vercel
+frontend/node_modules/
+frontend/dist/
+
 # OS
 .DS_Store
 Thumbs.db
