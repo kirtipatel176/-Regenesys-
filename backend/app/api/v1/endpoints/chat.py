@@ -76,7 +76,7 @@ async def ask_question(
         for chunk in top_chunks
     ]
 
-    # 4. Generate Answer via Gemini
+    # 4. Generate Answer via configured LLM provider (Bedrock / Gemini)
     rag_res = generate_rag_answer(request.question, top_chunks)
     answer_text = rag_res["text"]
     citations = [

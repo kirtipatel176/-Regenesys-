@@ -59,9 +59,15 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"Neo4j initialisation error: {e}")
 
-    # 4. Gemini Key Check
-    if not settings.GEMINI_API_KEY or "your_gemini_api_key" in settings.GEMINI_API_KEY:
-        logger.warning("GEMINI_API_KEY is missing or invalid. AI features will fail or run in mocked mode.")
+    # 4. LLM Provider Check
+    if settings.LLM_PROVIDER.lower() == "gemini" and (
+        not settings.GEMINI_API_KEY or "your_gemini_api_key" in settings.GEMINI_API_KEY
+    ):
+        logger.warning("LLM_PROVIDER is 'gemini' but GEMINI_API_KEY is missing or invalid.")
+    elif settings.LLM_PROVIDER.lower() == "bedrock" and (
+        not settings.AWS_ACCESS_KEY_ID or "your_aws" in settings.AWS_ACCESS_KEY_ID
+    ):
+        logger.warning("LLM_PROVIDER is 'bedrock' but AWS credentials are missing or placeholder.")
 
     yield
 

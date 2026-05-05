@@ -1,0 +1,270 @@
+"""
+LLM Provider abstraction layer.
+
+This module defines the ``LLMProvider`` interface and provides concrete
+implementations for:
+
+  • **Gemini**  — Google's Gemini 2.5 Pro (``gemini`` provider)
+  • **Bedrock** — AWS Bedrock with Anthropic Claude 3.5 Sonnet (``bedrock`` provider)
+
+The active provider is selected at runtime via the ``LLM_PROVIDER`` env
+variable (see ``app.core.config.Settings``).  The factory function
+``get_llm_provider()`` returns a singleton of the configured provider.
+
+Adding a new provider
+---------------------
+1. Create a new class that inherits from ``LLMProvider``.
+2. Implement ``generate()`` and ``generate_stream()``.
+3. Register it in ``_PROVIDER_REGISTRY``.
+4. Set ``LLM_PROVIDER=<key>`` in ``.env``.
+"""
+import json
+import logging
+from abc import ABC, abstractmethod
+from typing import Any, AsyncGenerator, Dict, List, Optional
+
+logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Abstract interface
+# ---------------------------------------------------------------------------
+
+class LLMProvider(ABC):
+    """Base class that every LLM provider must implement."""
+
+    @abstractmethod
+    def generate(self, prompt: str) -> Dict[str, Any]:
+        """
+        Synchronous text generation.
+
+        Returns
+        -------
+        dict with keys:
+            - ``text``  (str)  — the generated answer
+            - ``usage`` (dict | None) — token usage info
+            - ``model`` (str)  — model identifier used
+        """
+        ...
+
+    @abstractmethod
+    async def generate_stream(self, prompt: str) -> AsyncGenerator[str, None]:
+        """
+        Async streaming text generation.
+
+        Yields str chunks as they arrive from the model.
+        """
+        ...
+
+    @property
+    @abstractmethod
+    def model_name(self) -> str:
+        """Human-readable identifier for the model being used."""
+        ...
+
+
+# ---------------------------------------------------------------------------
+# Gemini provider
+# ---------------------------------------------------------------------------
+
+class GeminiProvider(LLMProvider):
+    """Google Gemini via the ``google-genai`` SDK."""
+
+    def __init__(self):
+        from google import genai
+        from app.core.config import settings
+
+        if not settings.GEMINI_API_KEY:
+            raise RuntimeError(
+                "LLM_PROVIDER is set to 'gemini' but GEMINI_API_KEY is empty."
+            )
+        self._client = genai.Client(api_key=settings.GEMINI_API_KEY)
+        self._model = settings.LLM_MODEL or "gemini-2.5-pro"
+        logger.info("GeminiProvider initialised (model=%s)", self._model)
+
+    @property
+    def model_name(self) -> str:
+        return self._model
+
+    def generate(self, prompt: str) -> Dict[str, Any]:
+        from google.genai import types
+
+        response = self._client.models.generate_content(
+            model=self._model,
+            contents=prompt,
+            config=types.GenerateContentConfig(temperature=0.0),
+        )
+        usage = None
+        if hasattr(response, "usage_metadata") and response.usage_metadata:
+            usage = {
+                "prompt_tokens": response.usage_metadata.prompt_token_count,
+                "candidates_tokens": response.usage_metadata.candidates_token_count,
+            }
+        return {"text": response.text, "usage": usage, "model": self._model}
+
+    async def generate_stream(self, prompt: str) -> AsyncGenerator[str, None]:
+        from google.genai import types
+
+        response = await self._client.aio.models.generate_content_stream(
+            model=self._model,
+            contents=prompt,
+            config=types.GenerateContentConfig(temperature=0.0),
+        )
+        async for chunk in response:
+            if chunk.text:
+                yield chunk.text
+
+
+# ---------------------------------------------------------------------------
+# AWS Bedrock provider  (Anthropic Claude via Bedrock)
+# ---------------------------------------------------------------------------
+
+class BedrockProvider(LLMProvider):
+    """
+    AWS Bedrock with Anthropic Claude models.
+
+    Uses ``boto3`` with the Bedrock Runtime ``converse`` and
+    ``converse_stream`` APIs, which provide a unified interface across
+    all Bedrock foundation models.
+
+    Required env vars:
+        AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
+        (or an attached IAM role / instance profile in production)
+    """
+
+    def __init__(self):
+        import boto3
+        from app.core.config import settings
+
+        session_kwargs: Dict[str, Any] = {}
+        if settings.AWS_ACCESS_KEY_ID:
+            session_kwargs["aws_access_key_id"] = settings.AWS_ACCESS_KEY_ID
+        if settings.AWS_SECRET_ACCESS_KEY:
+            session_kwargs["aws_secret_access_key"] = settings.AWS_SECRET_ACCESS_KEY
+        if settings.AWS_REGION:
+            session_kwargs["region_name"] = settings.AWS_REGION
+
+        session = boto3.Session(**session_kwargs)
+        self._client = session.client("bedrock-runtime")
+        self._model = settings.LLM_MODEL or "anthropic.claude-3-5-sonnet-20241022-v2:0"
+        self._max_tokens = settings.BEDROCK_MAX_TOKENS
+        logger.info(
+            "BedrockProvider initialised (model=%s, region=%s)",
+            self._model,
+            settings.AWS_REGION or "default",
+        )
+
+    @property
+    def model_name(self) -> str:
+        return self._model
+
+    def generate(self, prompt: str) -> Dict[str, Any]:
+        response = self._client.converse(
+            modelId=self._model,
+            messages=[
+                {
+                    "role": "user",
+                    "content": [{"text": prompt}],
+                }
+            ],
+            inferenceConfig={
+                "maxTokens": self._max_tokens,
+                "temperature": 0.0,
+            },
+        )
+
+        # Extract text from the response
+        output_message = response.get("output", {}).get("message", {})
+        text_parts = [
+            block["text"]
+            for block in output_message.get("content", [])
+            if "text" in block
+        ]
+        text = "\n".join(text_parts) if text_parts else ""
+
+        # Extract usage
+        usage_meta = response.get("usage", {})
+        usage = None
+        if usage_meta:
+            usage = {
+                "prompt_tokens": usage_meta.get("inputTokens"),
+                "candidates_tokens": usage_meta.get("outputTokens"),
+            }
+
+        return {"text": text, "usage": usage, "model": self._model}
+
+    async def generate_stream(self, prompt: str) -> AsyncGenerator[str, None]:
+        """
+        Stream via Bedrock's ``converse_stream`` API.
+
+        Note: boto3 is synchronous.  For production at scale, consider
+        wrapping in ``asyncio.to_thread`` or using ``aioboto3``.  For now,
+        we use ``asyncio.to_thread`` for the initial call and iterate the
+        event stream synchronously (each chunk is tiny, so blocking is
+        negligible).
+        """
+        import asyncio
+
+        response = await asyncio.to_thread(
+            self._client.converse_stream,
+            modelId=self._model,
+            messages=[
+                {
+                    "role": "user",
+                    "content": [{"text": prompt}],
+                }
+            ],
+            inferenceConfig={
+                "maxTokens": self._max_tokens,
+                "temperature": 0.0,
+            },
+        )
+
+        stream = response.get("stream")
+        if not stream:
+            return
+
+        # Iterate the EventStream (synchronous iterator from boto3)
+        for event in stream:
+            if "contentBlockDelta" in event:
+                delta = event["contentBlockDelta"].get("delta", {})
+                text = delta.get("text", "")
+                if text:
+                    yield text
+
+
+# ---------------------------------------------------------------------------
+# Provider registry & factory
+# ---------------------------------------------------------------------------
+
+_PROVIDER_REGISTRY: Dict[str, type] = {
+    "gemini": GeminiProvider,
+    "bedrock": BedrockProvider,
+}
+
+_provider_instance: Optional[LLMProvider] = None
+
+
+def get_llm_provider() -> LLMProvider:
+    """
+    Return the singleton LLM provider instance, determined by
+    ``settings.LLM_PROVIDER``.
+
+    The provider is lazily initialised on first call.
+    """
+    global _provider_instance
+    if _provider_instance is not None:
+        return _provider_instance
+
+    from app.core.config import settings
+
+    key = settings.LLM_PROVIDER.lower()
+    provider_cls = _PROVIDER_REGISTRY.get(key)
+    if provider_cls is None:
+        raise ValueError(
+            f"Unknown LLM_PROVIDER '{key}'. "
+            f"Available: {', '.join(_PROVIDER_REGISTRY.keys())}"
+        )
+
+    _provider_instance = provider_cls()
+    return _provider_instance

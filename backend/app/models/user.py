@@ -23,6 +23,7 @@ class User(TimestampMixin, Base):
     password_hash = Column(String, nullable=False)
     role = Column(Enum(RoleEnum), default=RoleEnum.user, nullable=False)
     is_active = Column(Boolean, default=True)
+    is_verified = Column(Boolean, default=False)
 
     profile = relationship(
         "Profile", back_populates="user", uselist=False, cascade="all, delete-orphan"

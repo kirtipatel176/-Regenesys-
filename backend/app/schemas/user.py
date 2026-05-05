@@ -35,6 +35,7 @@ class UserResponse(UserBase):
     id: UUID
     role: RoleEnum
     is_active: bool
+    is_verified: bool
     created_at: datetime
     updated_at: datetime
 
@@ -46,3 +47,12 @@ class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     password: Optional[str] = None
     is_active: Optional[bool] = None
+
+
+class OTPVerifyRequest(BaseModel):
+    email: EmailStr
+    otp: str
+
+
+class OTPResendRequest(BaseModel):
+    email: EmailStr

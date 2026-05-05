@@ -13,15 +13,30 @@ from app.core.redis import check_rate_limit, clear_rate_limit
 from app.models.refresh_token import RefreshToken
 from app.models.user import User
 from app.schemas.token import RefreshRequest, Token, TokenPayload
-from app.schemas.user import UserCreate, UserResponse
+from app.schemas.user import (
+    OTPResendRequest,
+    OTPVerifyRequest,
+    UserCreate,
+    UserResponse,
+)
+from app.services.otp_service import create_and_store_otp, send_otp_email, verify_otp
 
 router = APIRouter()
 
+
+# ------------------------------------------------------------------ #
+# Registration + OTP Verification
+# ------------------------------------------------------------------ #
 
 @router.post(
     "/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED
 )
 async def register(user_in: UserCreate, db: AsyncSession = Depends(deps.get_db)):
+    """
+    Register a new user.  The account is created as **unverified**.
+    A 6-digit OTP is sent to the provided email address.
+    The user must call ``/verify-otp`` before they can log in.
+    """
     result = await db.execute(select(User).filter(User.email == user_in.email))
     if result.scalars().first():
         raise HTTPException(
@@ -29,13 +44,96 @@ async def register(user_in: UserCreate, db: AsyncSession = Depends(deps.get_db))
             detail="The user with this email already exists in the system.",
         )
     user = User(
-        email=user_in.email, password_hash=security.get_password_hash(user_in.password)
+        email=user_in.email,
+        password_hash=security.get_password_hash(user_in.password),
+        is_verified=False,
     )
     db.add(user)
     await db.commit()
     await db.refresh(user)
+
+    # Generate and send OTP
+    otp = await create_and_store_otp(user.email)
+    await send_otp_email(user.email, otp)
+
     return user
 
+
+@router.post("/verify-otp")
+async def verify_otp_endpoint(
+    payload: OTPVerifyRequest,
+    db: AsyncSession = Depends(deps.get_db),
+):
+    """
+    Verify the 6-digit OTP sent to the user's email during registration.
+    On success, the account is marked as verified and the user can log in.
+    """
+    result = await db.execute(select(User).filter(User.email == payload.email))
+    user = result.scalars().first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No account found with this email.",
+        )
+    if user.is_verified:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This account is already verified.",
+        )
+
+    is_valid = await verify_otp(payload.email, payload.otp)
+    if not is_valid:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired OTP. Please request a new one.",
+        )
+
+    user.is_verified = True
+    await db.commit()
+
+    return {"message": "Email verified successfully. You can now log in."}
+
+
+@router.post("/resend-otp")
+async def resend_otp_endpoint(
+    payload: OTPResendRequest,
+    db: AsyncSession = Depends(deps.get_db),
+):
+    """
+    Resend the OTP to the user's email.
+    Rate-limited to 1 request per 60 seconds.
+    """
+    result = await db.execute(select(User).filter(User.email == payload.email))
+    user = result.scalars().first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No account found with this email.",
+        )
+    if user.is_verified:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This account is already verified.",
+        )
+
+    try:
+        otp = await create_and_store_otp(user.email)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=str(e),
+        )
+
+    await send_otp_email(user.email, otp)
+
+    return {"message": "OTP has been resent to your email."}
+
+
+# ------------------------------------------------------------------ #
+# Login (with verification check)
+# ------------------------------------------------------------------ #
 
 @router.post("/login", response_model=Token)
 async def login(
@@ -66,6 +164,11 @@ async def login(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user"
         )
+    elif not user.is_verified:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Email not verified. Please check your inbox for the OTP.",
+        )
 
     # Login successful, clear rate limit
     await clear_rate_limit(rate_limit_key)
@@ -93,6 +196,10 @@ async def login(
         "token_type": "bearer",
     }
 
+
+# ------------------------------------------------------------------ #
+# Token Refresh
+# ------------------------------------------------------------------ #
 
 @router.post("/refresh", response_model=Token)
 async def refresh_token(
@@ -181,6 +288,10 @@ async def refresh_token(
         "token_type": "bearer",
     }
 
+
+# ------------------------------------------------------------------ #
+# Logout
+# ------------------------------------------------------------------ #
 
 @router.post("/logout")
 async def logout(
