@@ -52,8 +52,13 @@ def generate_rag_answer(question: str, chunks: List[Any]) -> dict:
     context_text = format_context(chunks)
     prompt = PROMPT_TEMPLATE.format(context=context_text, question=question)
 
-    result = provider.generate(prompt)
-    return result
+    try:
+        result = provider.generate(prompt)
+        return result
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error("LLM Provider error: %s", e)
+        return {"text": "I am currently unable to connect to the AI service. Please verify the API key configuration.", "usage": None, "model": None}
 
 
 async def generate_rag_answer_stream(question: str, chunks: List[Any]):
@@ -71,5 +76,10 @@ async def generate_rag_answer_stream(question: str, chunks: List[Any]):
     context_text = format_context(chunks)
     prompt = PROMPT_TEMPLATE.format(context=context_text, question=question)
 
-    async for chunk_text in provider.generate_stream(prompt):
-        yield chunk_text
+    try:
+        async for chunk_text in provider.generate_stream(prompt):
+            yield chunk_text
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error("LLM Provider stream error: %s", e)
+        yield "\n\n[Error: Unable to connect to the AI service. Please verify the API key configuration.]"
