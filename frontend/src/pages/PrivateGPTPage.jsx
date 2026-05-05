@@ -194,7 +194,7 @@ const PrivateGPTPage = () => {
     if (activeConvId === id) setActiveConvId(updated[0].id);
   };
 
-  const handleSend = (e, customMsg = null) => {
+  const handleSend = async (e, customMsg = null) => {
     const msg = customMsg || input.trim();
     if (!msg || isTyping || isStreaming) return;
 
@@ -212,52 +212,64 @@ const PrivateGPTPage = () => {
     setInput('');
     setIsTyping(true);
 
-    // Simulate thinking delay, then stream
-    setTimeout(() => {
-      const { text: response, suggestions } = getAIResponse(msg);
-      setIsTyping(false);
-      setIsStreaming(true);
-      setStreamingText('');
+    // Call the real API
+    // Only pass session ID if it looks like a real UUID from the backend
+    const isValidUUID = activeConvId && activeConvId.length === 36;
+    const { text: response, suggestions, sessionId, citations, sources: aiSources } = await getAIResponse(msg, isValidUUID ? activeConvId : null);
+    
+    setIsTyping(false);
+    
+    // If backend created a new session ID, we should update our local activeConvId
+    let targetConvId = activeConvId;
+    if (sessionId && sessionId !== activeConvId) {
+      setConversations(prev => prev.map(c => c.id === activeConvId ? { ...c, id: sessionId } : c));
+      setActiveConvId(sessionId);
+      targetConvId = sessionId;
+    }
 
-      // Add placeholder AI message
-      const aiMsgId = Date.now().toString();
-      const aiMsg = { 
-        role: 'ai', 
-        text: '', 
-        sources: ['programmes.pdf', 'faq.md'], 
-        time: new Date(), 
-        id: aiMsgId, 
-        streaming: true,
-        followUp: suggestions
-      };
-      setConversations(prev => prev.map(c => c.id === activeConvId ? { ...c, messages: [...c.messages, aiMsg] } : c));
+    setIsStreaming(true);
+    setStreamingText('');
 
-      // Stream characters one by one
-      let charIndex = 0;
-      const speed = 10; // Faster streaming for better feel
-      streamRef.current = setInterval(() => {
-        charIndex += 2; // Stream 2 chars at a time for smoothness
-        const currentText = response.slice(0, charIndex);
-        setStreamingText(currentText);
+    // Add placeholder AI message
+    const aiMsgId = Date.now().toString();
+    const formattedSources = aiSources ? aiSources.map(s => s.filename) : ['programmes.pdf'];
+    const aiMsg = { 
+      role: 'ai', 
+      text: '', 
+      sources: formattedSources, 
+      time: new Date(), 
+      id: aiMsgId, 
+      streaming: true,
+      followUp: suggestions || []
+    };
+    
+    setConversations(prev => prev.map(c => c.id === targetConvId ? { ...c, messages: [...c.messages, aiMsg] } : c));
 
-        // Update the message in conversation
+    // Stream characters one by one
+    let charIndex = 0;
+    const speed = 10; // Faster streaming for better feel
+    streamRef.current = setInterval(() => {
+      charIndex += 2; // Stream 2 chars at a time for smoothness
+      const currentText = response.slice(0, charIndex);
+      setStreamingText(currentText);
+
+      // Update the message in conversation
+      setConversations(prev => prev.map(c => {
+        if (c.id !== targetConvId) return c;
+        return { ...c, messages: c.messages.map(m => m.id === aiMsgId ? { ...m, text: currentText } : m) };
+      }));
+
+      if (charIndex >= response.length) {
+        clearInterval(streamRef.current);
+        setIsStreaming(false);
+        setStreamingText('');
+        // Mark as no longer streaming
         setConversations(prev => prev.map(c => {
-          if (c.id !== activeConvId) return c;
-          return { ...c, messages: c.messages.map(m => m.id === aiMsgId ? { ...m, text: currentText } : m) };
+          if (c.id !== targetConvId) return c;
+          return { ...c, messages: c.messages.map(m => m.id === aiMsgId ? { ...m, streaming: false, text: response } : m) };
         }));
-
-        if (charIndex >= response.length) {
-          clearInterval(streamRef.current);
-          setIsStreaming(false);
-          setStreamingText('');
-          // Mark as no longer streaming
-          setConversations(prev => prev.map(c => {
-            if (c.id !== activeConvId) return c;
-            return { ...c, messages: c.messages.map(m => m.id === aiMsgId ? { ...m, streaming: false } : m) };
-          }));
-        }
-      }, speed);
-    }, 1000);
+      }
+    }, speed);
   };
 
   const handleSuggestedClick = (q) => {

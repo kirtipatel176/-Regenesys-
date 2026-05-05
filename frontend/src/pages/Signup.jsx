@@ -16,7 +16,7 @@ const maskEmail = (email) => {
 const delay = (ms = 1000) => new Promise(resolve => setTimeout(resolve, ms));
 
 const Signup = () => {
-  const { signup, checkEmail } = useAuth();
+  const { signup, checkEmail, verifyOTP, login } = useAuth();
   const navigate = useNavigate();
   
   const [step, setStep] = useState(1); // 1: Details, 2: OTP
@@ -55,14 +55,21 @@ const Signup = () => {
       return;
     }
 
-    // Simulate sending OTP
     setLoading(true);
-    await delay(800);
+    
+    // Call the real backend register endpoint (this sends OTP)
+    const result = await signup(form.name, form.email, form.password);
+    
     setLoading(false);
-    setStep(2);
-    setOtpSent(true);
-    // Auto-hide success message after 5s
-    setTimeout(() => setOtpSent(false), 5000);
+    
+    if (result.success) {
+      setStep(2);
+      setOtpSent(true);
+      // Auto-hide success message after 5s
+      setTimeout(() => setOtpSent(false), 5000);
+    } else {
+      setError(result.error || 'Registration failed.');
+    }
   };
 
   const handleOtpChange = (e, index) => {
@@ -108,28 +115,39 @@ const Signup = () => {
     e.preventDefault();
     setError('');
     
-    if (otp.join('').length < 6) {
+    const otpCode = otp.join('');
+    if (otpCode.length < 6) {
       setError('Please enter the complete 6-digit code.');
       return;
     }
 
     setLoading(true);
     try {
-      // Execute the actual signup process using context
-      const result = await signup(form.name, form.email, form.password);
+      // 1. Verify OTP with the backend
+      const verifyResult = await verifyOTP(form.email, otpCode);
+      
+      if (!verifyResult.success) {
+        setLoading(false);
+        setError(verifyResult.error || 'Invalid OTP. Please try again.');
+        return;
+      }
+
+      // 2. Once verified, log the user in to get the JWT token
+      const loginResult = await login(form.email, form.password);
+      
       setLoading(false);
-      if (result.success) {
+      if (loginResult.success) {
         if (form.email === 'admin@regenesys.com') {
           navigate('/private-gpt');
         } else {
           navigate('/');
         }
       } else {
-        setError(result.error);
+        setError(loginResult.error || 'Login failed after verification. Please log in manually.');
       }
     } catch (err) {
       setLoading(false);
-      setError('Signup failed. Please try again.');
+      setError('Verification failed. Please try again.');
     }
   };
 
