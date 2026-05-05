@@ -53,13 +53,8 @@ const PrivateGPTPage = () => {
     return [
       { 
         id: '1', 
-        title: 'Welcome Chat', 
-        messages: [{ 
-          role: 'ai', 
-          text: `Hello ${user?.name || 'there'}! Welcome to Regenesys PrivateGPT — your enterprise knowledge assistant.\n\nI have access to our internal knowledge base including programme details, enrolment processes, success stories, and more.\n\n**What would you like to know?**`, 
-          sources: ['programmes.pdf', 'company_overview.pdf'], 
-          time: new Date() 
-        }], 
+        title: 'New Conversation', 
+        messages: [], 
         createdAt: new Date() 
       }
     ];
@@ -107,6 +102,7 @@ const PrivateGPTPage = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingText, setStreamingText] = useState('');
+  const [toast, setToast] = useState({ show: false, message: '' });
   const [showSources, setShowSources] = useState(isAdmin);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const msgsEndRef = useRef(null);
@@ -123,13 +119,21 @@ const PrivateGPTPage = () => {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
+  // Auto-hide toast
+  useEffect(() => {
+    if (toast.show) {
+      const timer = setTimeout(() => setToast({ ...toast, show: false }), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
+
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file || uploading) return;
 
     // Prevent duplicates (checking both current sources and any pending upload)
     if (sources.some(s => s.name === file.name)) {
-      alert("This file is already uploaded.");
+      setToast({ show: true, message: "This file is already uploaded." });
       e.target.value = '';
       return;
     }
@@ -176,7 +180,7 @@ const PrivateGPTPage = () => {
     const newConv = {
       id: Date.now().toString(),
       title: 'New Conversation',
-      messages: [{ role: 'ai', text: 'How can I help you today? Ask me anything about Regenesys programmes, training, or corporate education.', sources: ['programmes.pdf'], time: new Date() }],
+      messages: [],
       createdAt: new Date()
     };
     setConversations(prev => [newConv, ...prev]);
@@ -272,8 +276,7 @@ const PrivateGPTPage = () => {
 
   const handleCopy = (text) => {
     navigator.clipboard.writeText(text);
-    // Optional: show a temporary toast or change icon
-    alert("Copied to clipboard!");
+    setToast({ show: true, message: "Copied to clipboard!" });
   };
 
   const handleLike = (msgId, isLike) => {
@@ -296,7 +299,7 @@ const PrivateGPTPage = () => {
       date: new Date().toLocaleDateString()
     };
     setNotes(prev => [newNote, ...prev]);
-    alert("Saved to your notes!");
+    setToast({ show: true, message: "Saved to your notes!" });
   };
 
   const handleLogout = () => {
@@ -778,6 +781,23 @@ const PrivateGPTPage = () => {
               </div>
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {toast.show && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[3000] px-6 py-3 bg-gray-900/90 backdrop-blur-md text-white text-[13px] font-bold rounded-2xl shadow-premium-2xl flex items-center gap-3 border border-white/10"
+          >
+            <div className="w-5 h-5 rounded-full bg-regenesys-gold flex items-center justify-center">
+              <Sparkles size={12} className="text-regenesys-navy" />
+            </div>
+            {toast.message}
+          </motion.div>
         )}
       </AnimatePresence>
         </div>
