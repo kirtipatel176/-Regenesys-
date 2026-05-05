@@ -27,14 +27,27 @@ const Login = () => {
       return;
     }
 
+    if (form.password.length < 8) {
+      setError('Password must be at least 8 characters long.');
+      return;
+    }
+
     setLoading(true);
-    const result = await login(form.email, form.password);
-    setLoading(false);
-    
-    if (result.success) {
-      navigate('/private-gpt');
-    } else {
-      setError(result.error);
+    try {
+      const result = await login(form.email, form.password);
+      setLoading(false);
+      if (result.success) {
+        if (form.email === 'admin@regenesys.com') {
+          navigate('/private-gpt');
+        } else {
+          navigate('/');
+        }
+      } else {
+        setError(result.error);
+      }
+    } catch (err) {
+      setLoading(false);
+      setError('An unexpected error occurred. Please try again.');
     }
   };
 

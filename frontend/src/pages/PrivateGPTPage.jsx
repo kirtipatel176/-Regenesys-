@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   Plus, Sparkles, FileText, Trash2, 
-  Upload, BookOpen, MessageSquare, LogOut, ChevronDown,
+  Upload, BookOpen, MessageSquare, LogOut, ChevronDown, X,
   Copy, ThumbsUp, ThumbsDown, ArrowLeft, ArrowRight,
   PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
@@ -23,10 +23,86 @@ const PrivateGPTPage = () => {
   const isAdmin = user?.email === 'admin@regenesys.com';
   
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [conversations, setConversations] = useState([
-    { id: '1', title: 'Welcome Chat', messages: [{ role: 'ai', text: `Hello ${user?.name || 'there'}! Welcome to Regenesys PrivateGPT — your enterprise knowledge assistant.\n\nI have access to our internal knowledge base including programme details, enrolment processes, success stories, and more.\n\n**What would you like to know?**`, sources: ['programmes.pdf', 'company_overview.pdf'], time: new Date() }], createdAt: new Date() }
-  ]);
-  const [activeConvId, setActiveConvId] = useState('1');
+  
+  // Storage keys specific to each user
+  const STORAGE_KEY = `regenesys_chats_${user?.id || 'guest'}`;
+  const SOURCES_KEY = `regenesys_sources_${user?.id || 'guest'}`;
+  const NOTES_KEY = `regenesys_notes_${user?.id || 'guest'}`;
+
+  const [notes, setNotes] = useState(() => {
+    const stored = localStorage.getItem(NOTES_KEY);
+    return stored ? JSON.parse(stored) : [];
+  });
+
+  const [conversations, setConversations] = useState(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        // Convert string dates back to Date objects
+        return parsed.map(c => ({
+          ...c,
+          createdAt: new Date(c.createdAt),
+          messages: c.messages.map(m => ({ ...m, time: new Date(m.time) }))
+        }));
+      } catch (e) {
+        console.error("Failed to parse stored chats", e);
+      }
+    }
+    // Default initial conversation
+    return [
+      { 
+        id: '1', 
+        title: 'Welcome Chat', 
+        messages: [{ 
+          role: 'ai', 
+          text: `Hello ${user?.name || 'there'}! Welcome to Regenesys PrivateGPT — your enterprise knowledge assistant.\n\nI have access to our internal knowledge base including programme details, enrolment processes, success stories, and more.\n\n**What would you like to know?**`, 
+          sources: ['programmes.pdf', 'company_overview.pdf'], 
+          time: new Date() 
+        }], 
+        createdAt: new Date() 
+      }
+    ];
+  });
+
+  const [sources, setSources] = useState(() => {
+    const stored = localStorage.getItem(SOURCES_KEY);
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch (e) {
+        console.error("Failed to parse stored sources", e);
+      }
+    }
+    return [
+      { id: 'src-1', name: 'programmes.pdf', pages: 24, type: 'PDF' },
+      { id: 'src-2', name: 'esg_manual.pdf', pages: 18, type: 'PDF' },
+      { id: 'src-3', name: 'faq.md', pages: 8, type: 'Markdown' },
+      { id: 'src-4', name: 'success_stories.pdf', pages: 32, type: 'PDF' },
+      { id: 'src-5', name: 'company_overview.pdf', pages: 12, type: 'PDF' },
+    ];
+  });
+
+  // Persist conversations to localStorage
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(conversations));
+  }, [conversations, STORAGE_KEY]);
+
+  // Persist sources to localStorage
+  useEffect(() => {
+    localStorage.setItem(SOURCES_KEY, JSON.stringify(sources));
+  }, [sources, SOURCES_KEY]);
+
+  // Persist notes to localStorage
+  useEffect(() => {
+    localStorage.setItem(NOTES_KEY, JSON.stringify(notes));
+  }, [notes, NOTES_KEY]);
+
+  const [activeConvId, setActiveConvId] = useState(() => {
+    return conversations[0]?.id || '1';
+  });
+  
+  const [selectedNote, setSelectedNote] = useState(null);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -44,13 +120,57 @@ const PrivateGPTPage = () => {
     msgsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping, streamingText]);
 
-  const sources = [
-    { name: 'programmes.pdf', pages: 24, type: 'PDF' },
-    { name: 'esg_manual.pdf', pages: 18, type: 'PDF' },
-    { name: 'faq.md', pages: 8, type: 'Markdown' },
-    { name: 'success_stories.pdf', pages: 32, type: 'PDF' },
-    { name: 'company_overview.pdf', pages: 12, type: 'PDF' },
-  ];
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file || uploading) return;
+
+    // Prevent duplicates (checking both current sources and any pending upload)
+    if (sources.some(s => s.name === file.name)) {
+      alert("This file is already uploaded.");
+      e.target.value = '';
+      return;
+    }
+
+    setUploading(true);
+    setUploadProgress(0);
+
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += 10;
+      setUploadProgress(progress);
+
+      if (progress >= 100) {
+        clearInterval(interval);
+        
+        // Finalize upload after a tiny delay for visual effect
+        setTimeout(() => {
+          setUploading(false);
+          setSources(prevSources => {
+            // Double check inside the setter to be absolutely sure
+            if (prevSources.some(s => s.name === file.name)) return prevSources;
+            
+            return [
+              { 
+                id: `src-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                name: file.name, 
+                pages: Math.floor(Math.random() * 20) + 1, 
+                type: file.name.split('.').pop().toUpperCase() 
+              },
+              ...prevSources
+            ];
+          });
+          e.target.value = '';
+        }, 100);
+      }
+    }, 150);
+  };
+
+  const handleDeleteSource = (id) => {
+    setSources(prev => prev.filter(s => s.id !== id));
+  };
 
   const newConversation = () => {
     const newConv = {
@@ -150,6 +270,35 @@ const PrivateGPTPage = () => {
     }
   };
 
+  const handleCopy = (text) => {
+    navigator.clipboard.writeText(text);
+    // Optional: show a temporary toast or change icon
+    alert("Copied to clipboard!");
+  };
+
+  const handleLike = (msgId, isLike) => {
+    setConversations(prev => prev.map(c => {
+      if (c.id !== activeConvId) return c;
+      return {
+        ...c,
+        messages: c.messages.map(m => {
+          if (m.id === msgId) return { ...m, feedback: isLike ? 'like' : 'dislike' };
+          return m;
+        })
+      };
+    }));
+  };
+
+  const handleSaveNote = (text) => {
+    const newNote = {
+      id: Date.now(),
+      text,
+      date: new Date().toLocaleDateString()
+    };
+    setNotes(prev => [newNote, ...prev]);
+    alert("Saved to your notes!");
+  };
+
   const handleLogout = () => {
     logout();
     navigate('/');
@@ -200,9 +349,9 @@ const PrivateGPTPage = () => {
             )}
 
             {/* Conversations List - Admin Only */}
-            <div className="flex-1 overflow-y-auto px-3 pb-3">
+            <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-6">
               {isAdmin && (
-                <>
+                <div>
                   <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2 mb-2">Conversations</div>
                   {conversations.map(conv => (
                     <div
@@ -222,8 +371,37 @@ const PrivateGPTPage = () => {
                       )}
                     </div>
                   ))}
-                </>
+                </div>
               )}
+
+              {/* Saved Notes Section */}
+              <div>
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2 mb-2">My Saved Notes ({notes.length})</div>
+                {notes.length === 0 ? (
+                  <div className="px-2 py-4 text-[11px] text-gray-400 italic">No notes saved yet. Click "Save to note" on any AI response.</div>
+                ) : (
+                  <div className="space-y-2">
+                    {notes.map(note => (
+                      <div 
+                        key={note.id} 
+                        onClick={() => setSelectedNote(note)}
+                        className="p-3 bg-white border border-gray-100 rounded-xl group relative cursor-pointer hover:border-regenesys-purple/30 hover:shadow-sm transition-all"
+                      >
+                        <p className="text-[11px] text-gray-600 line-clamp-3 leading-relaxed">{note.text}</p>
+                        <div className="flex justify-between items-center mt-2">
+                          <span className="text-[9px] text-gray-400">{note.date}</span>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); setNotes(prev => prev.filter(n => n.id !== note.id)); }}
+                            className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-all"
+                          >
+                            <Trash2 size={10} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Sidebar Footer — User (Always Visible) */}
@@ -348,17 +526,30 @@ const PrivateGPTPage = () => {
                         {/* Actions for AI messages — only show when not streaming */}
                         {msg.role === 'ai' && !msg.streaming && (
                           <div className="flex items-center gap-3 mt-4 ml-1">
-                            <button className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-full text-[11px] font-semibold text-gray-600 hover:bg-gray-50 transition-all">
+                            <button 
+                              onClick={() => handleSaveNote(msg.text)}
+                              className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-full text-[11px] font-semibold text-gray-600 hover:bg-gray-50 transition-all hover:border-regenesys-purple/30"
+                            >
                               <Plus size={12} /> Save to note
                             </button>
                             <div className="flex items-center gap-1">
-                              <button className="p-1.5 hover:bg-gray-100 rounded-md transition-colors text-gray-400 hover:text-gray-600">
+                              <button 
+                                onClick={() => handleCopy(msg.text)}
+                                className="p-1.5 hover:bg-gray-100 rounded-md transition-colors text-gray-400 hover:text-gray-600"
+                                title="Copy to clipboard"
+                              >
                                 <Copy size={14} />
                               </button>
-                              <button className="p-1.5 hover:bg-gray-100 rounded-md transition-colors text-gray-400 hover:text-gray-600">
+                              <button 
+                                onClick={() => handleLike(msg.id, true)}
+                                className={`p-1.5 hover:bg-gray-100 rounded-md transition-colors ${msg.feedback === 'like' ? 'text-regenesys-purple bg-regenesys-purple/5' : 'text-gray-400 hover:text-gray-600'}`}
+                              >
                                 <ThumbsUp size={14} />
                               </button>
-                              <button className="p-1.5 hover:bg-gray-100 rounded-md transition-colors text-gray-400 hover:text-gray-600">
+                              <button 
+                                onClick={() => handleLike(msg.id, false)}
+                                className={`p-1.5 hover:bg-gray-100 rounded-md transition-colors ${msg.feedback === 'dislike' ? 'text-red-500 bg-red-50' : 'text-gray-400 hover:text-gray-600'}`}
+                              >
                                 <ThumbsDown size={14} />
                               </button>
                             </div>
@@ -474,26 +665,52 @@ const PrivateGPTPage = () => {
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-3 space-y-2">
-                  {sources.map((src, i) => (
-                    <div key={i} className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-100 hover:shadow-sm transition-all cursor-pointer group">
+                  {sources.map((src) => (
+                    <div key={src.id} className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-100 hover:shadow-sm transition-all group relative">
                       <div className="w-9 h-9 rounded-lg bg-regenesys-purple/10 flex items-center justify-center shrink-0">
                         <FileText size={16} className="text-regenesys-purple" />
                       </div>
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <div className="text-[12px] font-semibold text-gray-700 truncate">{src.name}</div>
                         <div className="text-[10px] text-gray-400">{src.pages} pages · {src.type}</div>
                       </div>
+                      <button 
+                        onClick={() => handleDeleteSource(src.id)}
+                        className="opacity-0 group-hover:opacity-100 p-2 text-gray-400 hover:text-red-500 transition-all rounded-lg hover:bg-red-50"
+                        title="Remove source"
+                      >
+                        <Trash2 size={14} />
+                      </button>
                     </div>
                   ))}
                 </div>
 
                 {/* Upload - Admin Only */}
                 <div className="p-3 border-t border-gray-100 shrink-0">
-                  {user?.email === 'admin@regenesys.com' ? (
-                    <label className="flex items-center gap-2 px-4 py-2.5 bg-white border border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-regenesys-purple/5 hover:border-regenesys-purple/30 transition-all">
-                      <input type="file" className="hidden" accept=".pdf,.docx,.txt,.md" />
-                      <Upload size={14} className="text-gray-400" />
-                      <span className="text-[12px] text-gray-500 font-medium">Upload document</span>
+                  {uploading ? (
+                    <div className="px-4 py-2.5">
+                      <div className="flex justify-between text-[11px] mb-1.5">
+                        <span className="text-regenesys-purple font-bold">Uploading...</span>
+                        <span className="text-gray-400">{uploadProgress}%</span>
+                      </div>
+                      <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <motion.div 
+                          initial={{ width: 0 }}
+                          animate={{ width: `${uploadProgress}%` }}
+                          className="h-full bg-regenesys-purple"
+                        />
+                      </div>
+                    </div>
+                  ) : isAdmin ? (
+                    <label className="flex items-center gap-2 px-4 py-2.5 bg-white border border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-regenesys-purple/5 hover:border-regenesys-purple/30 transition-all group">
+                      <input 
+                        type="file" 
+                        className="hidden" 
+                        accept=".pdf,.docx,.txt,.md" 
+                        onChange={handleFileUpload}
+                      />
+                      <Upload size={14} className="text-gray-400 group-hover:text-regenesys-purple" />
+                      <span className="text-[12px] text-gray-500 font-medium group-hover:text-gray-700">Upload document</span>
                     </label>
                   ) : (
                     <div 
@@ -507,7 +724,62 @@ const PrivateGPTPage = () => {
                 </div>
               </motion.div>
             )}
-          </AnimatePresence>
+      </AnimatePresence>
+
+      {/* Note View Modal */}
+      <AnimatePresence>
+        {selectedNote && (
+          <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedNote(null)}
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-lg bg-white rounded-2xl shadow-premium-2xl overflow-hidden flex flex-col max-h-[80vh]"
+            >
+              <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-regenesys-purple/10 flex items-center justify-center">
+                    <Plus size={16} className="text-regenesys-purple" />
+                  </div>
+                  <span className="text-[14px] font-bold text-gray-800">Saved Note</span>
+                </div>
+                <button onClick={() => setSelectedNote(null)} className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400">
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="p-6 overflow-y-auto flex-1">
+                <div className="text-[14px] text-gray-700 leading-relaxed whitespace-pre-wrap">
+                  {selectedNote.text}
+                </div>
+              </div>
+              <div className="p-4 border-t border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                <span className="text-[11px] text-gray-400">Saved on {selectedNote.date}</span>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => handleCopy(selectedNote.text)}
+                    className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-[12px] font-bold text-gray-600 hover:bg-gray-50 transition-all"
+                  >
+                    <Copy size={14} /> Copy Text
+                  </button>
+                  <button 
+                    onClick={() => { setNotes(prev => prev.filter(n => n.id !== selectedNote.id)); setSelectedNote(null); }}
+                    className="flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-100 rounded-xl text-[12px] font-bold text-red-600 hover:bg-red-100 transition-all"
+                  >
+                    <Trash2 size={14} /> Delete
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
         </div>
       </div>
     </div>

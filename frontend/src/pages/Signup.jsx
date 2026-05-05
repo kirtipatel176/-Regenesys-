@@ -12,6 +12,9 @@ const maskEmail = (email) => {
 };
 
 
+// Utility to simulate network delay
+const delay = (ms = 1000) => new Promise(resolve => setTimeout(resolve, ms));
+
 const Signup = () => {
   const { signup, checkEmail } = useAuth();
   const navigate = useNavigate();
@@ -34,10 +37,9 @@ const Signup = () => {
       return;
     }
 
-    // Backend requires: 8+ chars, 1 uppercase, 1 lowercase, 1 number, 1 special char
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/;
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
     if (!passwordRegex.test(form.password)) {
-      setError('Password must be at least 8 characters and include uppercase, lowercase, number, and special character.');
+      setError('Password must be at least 8 characters and include 1 uppercase letter, 1 number, and 1 special character.');
       return;
     }
 
@@ -46,14 +48,21 @@ const Signup = () => {
       return;
     }
 
+    // Check if email already exists
+    const exists = await checkEmail(form.email);
+    if (exists) {
+      setError('An account with this email already exists. Please log in.');
+      return;
+    }
+
+    // Simulate sending OTP
     setLoading(true);
-    // Simulate sending OTP step for demo UI flow
-    setTimeout(() => {
-      setLoading(false);
-      setStep(2);
-      setOtpSent(true);
-      setTimeout(() => setOtpSent(false), 5000);
-    }, 800);
+    await delay(800);
+    setLoading(false);
+    setStep(2);
+    setOtpSent(true);
+    // Auto-hide success message after 5s
+    setTimeout(() => setOtpSent(false), 5000);
   };
 
   const handleOtpChange = (e, index) => {
@@ -61,9 +70,11 @@ const Signup = () => {
     if (value !== '' && !/^\d+$/.test(value)) return;
     
     const newOtp = [...otp];
+    // Take only the last entered character to handle fast typing/paste
     newOtp[index] = value.substring(value.length - 1);
     setOtp(newOtp);
 
+    // Auto-focus next input
     if (value && index < 5) {
       otpRefs.current[index + 1]?.focus();
     }
@@ -81,6 +92,7 @@ const Signup = () => {
     });
     setOtp(newOtp);
 
+    // Focus the next empty input or the last input
     const nextEmptyIndex = newOtp.findIndex(val => val === '');
     const focusIndex = nextEmptyIndex === -1 ? 5 : nextEmptyIndex;
     otpRefs.current[focusIndex]?.focus();
@@ -102,14 +114,22 @@ const Signup = () => {
     }
 
     setLoading(true);
-    // Execute the actual signup process using async context
-    const result = await signup(form.name, form.email, form.password);
-    setLoading(false);
-    
-    if (result.success) {
-      navigate('/private-gpt');
-    } else {
-      setError(result.error);
+    try {
+      // Execute the actual signup process using context
+      const result = await signup(form.name, form.email, form.password);
+      setLoading(false);
+      if (result.success) {
+        if (form.email === 'admin@regenesys.com') {
+          navigate('/private-gpt');
+        } else {
+          navigate('/');
+        }
+      } else {
+        setError(result.error);
+      }
+    } catch (err) {
+      setLoading(false);
+      setError('Signup failed. Please try again.');
     }
   };
 

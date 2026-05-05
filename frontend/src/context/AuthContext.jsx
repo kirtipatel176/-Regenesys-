@@ -2,127 +2,164 @@ import { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext(null);
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
-
 // eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(AuthContext);
 
+// Utility to simulate network delay for realistic mock behavior
+const delay = (ms = 1000) => new Promise(resolve => setTimeout(resolve, ms));
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [aiSidebarOpen, setAiSidebarOpen] = useState(false);
 
-  // Restore session on mount
+  // Initialize Auth State from localStorage on mount
   useEffect(() => {
     const initAuth = async () => {
-      const token = localStorage.getItem('regenesys_token');
-      if (token) {
+      const stored = localStorage.getItem('regenesys_user');
+      if (stored) {
         try {
-          const response = await fetch(`${API_BASE_URL}/profile/me`, {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-          if (response.ok) {
-            const profile = await response.json();
-            setUser({
-              id: profile.id,
-              name: profile.full_name || profile.email?.split('@')[0] || 'User',
-              email: profile.email,
-              avatar: profile.avatar_url || (profile.full_name ? profile.full_name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U')
-            });
-          } else {
-            // Token expired or invalid
-            localStorage.removeItem('regenesys_token');
-            localStorage.removeItem('regenesys_refresh_token');
-          }
+          setUser(JSON.parse(stored));
         } catch (error) {
-          console.error('Failed to restore session:', error);
+          console.error("Failed to parse stored user", error);
+          localStorage.removeItem('regenesys_user');
         }
       }
-      setLoading(false);
+      // Small artificial delay for smooth initial load
+      await delay(300);
+      setIsLoading(false);
     };
     initAuth();
   }, []);
 
   const checkEmail = async (email) => {
-    // Note: Backend might need a dedicated check-email endpoint for better UX
-    // For now, we simulate success or use register's logic
-    return false; 
+    await delay(500);
+    const users = JSON.parse(localStorage.getItem('regenesys_users') || '[]');
+    return !!users.find(u => u.email === email);
   };
 
   const signup = async (name, email, password) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        return { success: false, error: data.detail || 'Signup failed' };
-      }
-
-      // If signup successful, we can optionally create the profile immediately
-      // or just log them in
-      return await login(email, password);
-    } catch (error) {
-      return { success: false, error: 'Could not connect to authentication server.' };
+    setIsLoading(true);
+    await delay(1500); // Simulate processing time
+    
+    const users = JSON.parse(localStorage.getItem('regenesys_users') || '[]');
+    
+    if (users.find(u => u.email === email)) {
+      setIsLoading(false);
+      return { success: false, error: 'An account with this email already exists.' };
     }
+
+    const newUser = {
+      id: Date.now().toString(),
+      name,
+      email,
+      password, // In production, this would be hashed
+      role: 'user',
+      createdAt: new Date().toISOString(),
+      avatar: name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    };
+
+    users.push(newUser);
+    localStorage.setItem('regenesys_users', JSON.stringify(users));
+
+    const sessionUser = { 
+      id: newUser.id, 
+      name: newUser.name, 
+      email: newUser.email, 
+      avatar: newUser.avatar,
+      role: newUser.role 
+    };
+    
+    setUser(sessionUser);
+    localStorage.setItem('regenesys_user', JSON.stringify(sessionUser));
+    setIsLoading(false);
+
+    return { success: true };
   };
 
   const login = async (email, password) => {
-    try {
-      const formData = new URLSearchParams();
-      formData.append('username', email);
-      formData.append('password', password);
+    setIsLoading(true);
+    await delay(1200);
 
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: formData
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        return { success: false, error: data.detail || 'Invalid email or password.' };
-      }
-
-      localStorage.setItem('regenesys_token', data.access_token);
-      localStorage.setItem('regenesys_refresh_token', data.refresh_token);
-
-      // Fetch profile
-      const profileResponse = await fetch(`${API_BASE_URL}/profile/me`, {
-        headers: { 'Authorization': `Bearer ${data.access_token}` }
-      });
-      
-      const profile = await profileResponse.json();
-      const sessionUser = {
-        id: profile.id,
-        name: profile.full_name || email.split('@')[0],
-        email: email,
-        avatar: profile.avatar_url || (profile.full_name ? profile.full_name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U')
-      };
-
-      setUser(sessionUser);
+    // 1. Check Admin Hardcoded Access
+    if (email === 'admin@regenesys.com' && password === 'admin123') {
+      const adminUser = { id: 'admin', name: 'Admin User', email: 'admin@regenesys.com', avatar: 'AD', role: 'admin' };
+      setUser(adminUser);
+      localStorage.setItem('regenesys_user', JSON.stringify(adminUser));
+      setIsLoading(false);
       return { success: true };
-    } catch (error) {
-      return { success: false, error: 'Connection error. Please try again later.' };
     }
+
+    // 2. Check Standard User Hardcoded Access
+    if (email === 'user@regenesys.com' && password === 'user1234') {
+      const demoUser = { id: 'user-1', name: 'Demo User', email: 'user@regenesys.com', avatar: 'DU', role: 'user' };
+      setUser(demoUser);
+      localStorage.setItem('regenesys_user', JSON.stringify(demoUser));
+      setIsLoading(false);
+      return { success: true };
+    }
+
+    // 3. Check LocalStorage Users
+    const users = JSON.parse(localStorage.getItem('regenesys_users') || '[]');
+    const found = users.find(u => u.email === email && u.password === password);
+
+    if (!found) {
+      setIsLoading(false);
+      return { success: false, error: 'Invalid email or password.' };
+    }
+
+    const sessionUser = { 
+      id: found.id, 
+      name: found.name, 
+      email: found.email, 
+      avatar: found.avatar,
+      role: found.role || 'user'
+    };
+    
+    setUser(sessionUser);
+    localStorage.setItem('regenesys_user', JSON.stringify(sessionUser));
+    setIsLoading(false);
+
+    return { success: true };
   };
 
-  const logout = () => {
+  // Mock OTP Functions — BYPASS ENABLED
+  const requestOTP = async (email) => {
+    await delay(800);
+    console.log(`[MOCK API] OTP requested for ${email}. (Bypass Active)`);
+    return { success: true, message: 'OTP sent successfully' };
+  };
+
+  const verifyOTP = async (email, otp) => {
+    await delay(800);
+    // BYPASS: Always return true regardless of the code entered
+    console.log(`[MOCK API] Verifying OTP ${otp} for ${email}... Bypassing!`);
+    return { success: true };
+  };
+
+  const logout = async () => {
+    setIsLoading(true);
+    await delay(500);
     setUser(null);
-    localStorage.removeItem('regenesys_token');
-    localStorage.removeItem('regenesys_refresh_token');
+    localStorage.removeItem('regenesys_user');
+    setIsLoading(false);
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout, aiSidebarOpen, setAiSidebarOpen, checkEmail, loading }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      isLoading, 
+      login, 
+      signup, 
+      logout, 
+      aiSidebarOpen, 
+      setAiSidebarOpen, 
+      checkEmail,
+      requestOTP,
+      verifyOTP
+    }}>
       {children}
     </AuthContext.Provider>
   );
 };
+
