@@ -19,7 +19,10 @@ export const AuthProvider = ({ children }) => {
 
   const [aiSidebarOpen, setAiSidebarOpen] = useState(false);
 
-
+  const checkEmail = (email) => {
+    const users = JSON.parse(localStorage.getItem('regenesys_users') || '[]');
+    return users.find(u => u.email === email);
+  };
   const signup = (name, email, password) => {
     // Get existing users
     const users = JSON.parse(localStorage.getItem('regenesys_users') || '[]');
@@ -78,7 +81,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout, aiSidebarOpen, setAiSidebarOpen }}>
+    <AuthContext.Provider value={{ user, login, signup, logout, aiSidebarOpen, setAiSidebarOpen, checkEmail }}>
       {children}
     </AuthContext.Provider>
   );

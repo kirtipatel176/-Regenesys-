@@ -13,7 +13,7 @@ const maskEmail = (email) => {
 
 
 const Signup = () => {
-  const { signup } = useAuth();
+  const { signup, checkEmail } = useAuth();
   const navigate = useNavigate();
   
   const [step, setStep] = useState(1); // 1: Details, 2: OTP
@@ -22,6 +22,7 @@ const Signup = () => {
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
   const otpRefs = useRef([]);
 
   const handleSignupSubmit = (e) => {
@@ -44,11 +45,20 @@ const Signup = () => {
       return;
     }
 
+    // Check if email already exists
+    if (checkEmail(form.email)) {
+      setError('An account with this email already exists. Please log in.');
+      return;
+    }
+
     // Simulate sending OTP
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
       setStep(2);
+      setOtpSent(true);
+      // Auto-hide success message after 5s
+      setTimeout(() => setOtpSent(false), 5000);
     }, 800);
   };
 
@@ -198,6 +208,20 @@ const Signup = () => {
                   We've sent a 6-digit verification code to<br />
                   <span className="font-bold text-regenesys-navy">{maskEmail(form.email)}</span>
                 </p>
+                
+                <AnimatePresence>
+                  {otpSent && (
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.9 }} 
+                      animate={{ opacity: 1, scale: 1 }} 
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      className="mt-4 bg-green-50 border border-green-100 text-green-700 text-[12px] px-4 py-2 rounded-lg inline-flex items-center gap-2"
+                    >
+                      <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                      OTP sent successfully! (Demo Mode)
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             )}
 
@@ -345,7 +369,14 @@ const Signup = () => {
             {step === 2 && (
               <p className="text-center text-[13px] text-regenesys-muted mt-8">
                 Didn't receive the code?{' '}
-                <button type="button" className="text-regenesys-purple font-bold hover:underline">
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    setOtpSent(true);
+                    setTimeout(() => setOtpSent(false), 5000);
+                  }}
+                  className="text-regenesys-purple font-bold hover:underline"
+                >
                   Resend Code
                 </button>
               </p>
