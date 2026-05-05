@@ -44,7 +44,7 @@ const Navbar = ({ onEnrollClick }) => {
   const useWhiteText = !isScrolled && hasDarkHero;
   
   return (
-    <nav className={`fixed left-0 z-[1000] px-6 lg:px-12 flex items-center transition-all duration-500 
+    <nav className={`fixed left-0 z-[1000] px-6 lg:px-8 xl:px-12 flex items-center transition-all duration-500 
       ${aiSidebarOpen && user && location.pathname !== '/private-gpt' ? 'right-0 lg:right-[420px]' : 'right-0'}
       ${isScrolled ? 'top-0 h-16 bg-white shadow-premium-lg border-b border-gray-100' : 'top-[var(--topbar-height)] lg:top-[var(--topbar-height-desktop)] h-20 lg:h-20 bg-transparent'}`}>
       
@@ -67,10 +67,10 @@ const Navbar = ({ onEnrollClick }) => {
         </div>
       </Link>
 
-      <div className="hidden lg:flex ml-16 items-center gap-1 h-full">
+      <div className="hidden lg:flex lg:ml-8 xl:ml-16 items-center lg:gap-0 xl:gap-1 h-full">
         <NavLink to="/" active={isHomePage} useWhite={useWhiteText}>Home</NavLink>
         <div className="relative group h-full flex items-center" onMouseEnter={() => setIsDropdownOpen(true)} onMouseLeave={() => setIsDropdownOpen(false)}>
-          <button className={`px-5 py-2 rounded-full text-[14px] font-black transition-all flex items-center gap-1.5 ${useWhiteText ? 'text-white hover:text-regenesys-gold drop-shadow-md' : 'text-regenesys-navy/80 hover:text-regenesys-red'}`}>
+          <button className={`lg:px-3 xl:px-5 py-2 rounded-full text-[14px] font-black transition-all flex items-center gap-1.5 ${useWhiteText ? 'text-white hover:text-regenesys-gold drop-shadow-md' : 'text-regenesys-navy/80 hover:text-regenesys-red'}`}>
             Programmes <ChevronDown size={14} className={`transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`} />
           </button>
           <div className={`absolute top-[80%] left-0 bg-white border border-gray-100 rounded-2xl shadow-premium-2xl min-w-[300px] py-4 transition-all ${isDropdownOpen ? 'opacity-100 visible translate-y-2' : 'opacity-0 invisible translate-y-0'}`}>
@@ -153,7 +153,7 @@ const Navbar = ({ onEnrollClick }) => {
 };
 
 const NavLink = ({ to, children, active, useWhite }) => (
-  <Link to={to} className={`px-5 py-2 rounded-full text-[14px] font-black transition-all relative group ${active ? (useWhite ? 'text-regenesys-gold' : 'text-regenesys-red') : (useWhite ? 'text-white hover:text-regenesys-gold drop-shadow-md' : 'text-regenesys-navy hover:text-regenesys-red')}`}>
+  <Link to={to} className={`lg:px-3 xl:px-5 py-2 rounded-full text-[14px] font-black transition-all relative group ${active ? (useWhite ? 'text-regenesys-gold' : 'text-regenesys-red') : (useWhite ? 'text-white hover:text-regenesys-gold drop-shadow-md' : 'text-regenesys-navy hover:text-regenesys-red')}`}>
     {children}
     {active && <div className={`absolute bottom-1.5 left-5 right-5 h-0.5 rounded-full ${useWhite ? 'bg-regenesys-gold' : 'bg-regenesys-red'}`} />}
   </Link>
