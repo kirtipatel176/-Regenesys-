@@ -12,7 +12,7 @@ const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -33,8 +33,8 @@ const Login = () => {
     }
 
     setLoading(true);
-    setTimeout(() => {
-      const result = login(form.email, form.password);
+    try {
+      const result = await login(form.email, form.password);
       setLoading(false);
       if (result.success) {
         if (form.email === 'admin@regenesys.com') {
@@ -45,7 +45,10 @@ const Login = () => {
       } else {
         setError(result.error);
       }
-    }, 600);
+    } catch (err) {
+      setLoading(false);
+      setError('An unexpected error occurred. Please try again.');
+    }
   };
 
   return (

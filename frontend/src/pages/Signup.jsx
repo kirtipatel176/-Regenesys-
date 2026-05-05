@@ -12,6 +12,9 @@ const maskEmail = (email) => {
 };
 
 
+// Utility to simulate network delay
+const delay = (ms = 1000) => new Promise(resolve => setTimeout(resolve, ms));
+
 const Signup = () => {
   const { signup, checkEmail } = useAuth();
   const navigate = useNavigate();
@@ -25,7 +28,7 @@ const Signup = () => {
   const [otpSent, setOtpSent] = useState(false);
   const otpRefs = useRef([]);
 
-  const handleSignupSubmit = (e) => {
+  const handleSignupSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -46,20 +49,20 @@ const Signup = () => {
     }
 
     // Check if email already exists
-    if (checkEmail(form.email)) {
+    const exists = await checkEmail(form.email);
+    if (exists) {
       setError('An account with this email already exists. Please log in.');
       return;
     }
 
     // Simulate sending OTP
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      setStep(2);
-      setOtpSent(true);
-      // Auto-hide success message after 5s
-      setTimeout(() => setOtpSent(false), 5000);
-    }, 800);
+    await delay(800);
+    setLoading(false);
+    setStep(2);
+    setOtpSent(true);
+    // Auto-hide success message after 5s
+    setTimeout(() => setOtpSent(false), 5000);
   };
 
   const handleOtpChange = (e, index) => {
@@ -101,7 +104,7 @@ const Signup = () => {
     }
   };
 
-  const handleOtpSubmit = (e) => {
+  const handleOtpSubmit = async (e) => {
     e.preventDefault();
     setError('');
     
@@ -111,9 +114,9 @@ const Signup = () => {
     }
 
     setLoading(true);
-    setTimeout(() => {
+    try {
       // Execute the actual signup process using context
-      const result = signup(form.name, form.email, form.password);
+      const result = await signup(form.name, form.email, form.password);
       setLoading(false);
       if (result.success) {
         if (form.email === 'admin@regenesys.com') {
@@ -124,7 +127,10 @@ const Signup = () => {
       } else {
         setError(result.error);
       }
-    }, 1200);
+    } catch (err) {
+      setLoading(false);
+      setError('Signup failed. Please try again.');
+    }
   };
 
   return (

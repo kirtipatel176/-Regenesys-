@@ -68,8 +68,9 @@ function AppRoutes() {
 
 const PrivateGPTAdminCheck = () => {
   const { user } = useAuth();
-  if (user?.email !== 'admin@regenesys.com') {
-    return <Navigate to="/" replace />;
+  // Allowing any authenticated user for testing purposes
+  if (!user) {
+    return <Navigate to="/login" replace />;
   }
   return <PrivateGPTPage />;
 };
