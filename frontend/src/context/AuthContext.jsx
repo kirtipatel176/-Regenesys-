@@ -62,7 +62,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     // Standard User Access for Testing
-    if (email === 'user@regenesys.com' && password === 'user123') {
+    if (email === 'user@regenesys.com' && password === 'user1234') {
       const demoUser = { id: 'user-1', name: 'Demo User', email: 'user@regenesys.com', avatar: 'DU' };
       setUser(demoUser);
       localStorage.setItem('regenesys_user', JSON.stringify(demoUser));
