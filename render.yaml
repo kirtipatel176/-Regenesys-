@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: private-gpt-api
+    env: python
+    region: ohio
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port 10000
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: POSTGRES_SERVER
+        value: dpg-d7t1d5a8qa3s73f3nnq0-a
+      - key: POSTGRES_USER
+        value: private_gpt_db_user
+      - key: POSTGRES_PASSWORD
+        value: yBOxyHH4qQUmhSYLNHgV061uq5X4mHQS
+      - key: POSTGRES_DB
+        value: private_gpt_db
+      - key: REDIS_URL
+        value: redis://red-d7t1guugvqtc73a5tha0:6379
+      - key: NEO4J_URI
+        value: neo4j+s://1d8de214.databases.neo4j.io
+      - key: NEO4J_USER
+        value: 1d8de214
+      - key: NEO4J_PASSWORD
+        value: GHUQUth2HbuK3ou83FMo4ubQRaPCWqQrc-knQ2MNDtQ
+      - key: LLM_PROVIDER
+        value: gemini
+      - key: GEMINI_API_KEY
+        sync: false
