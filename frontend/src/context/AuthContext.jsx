@@ -1,95 +1,127 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext(null);
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    const stored = typeof window !== 'undefined' ? localStorage.getItem('regenesys_user') : null;
-    if (stored) {
-      try {
-        return JSON.parse(stored);
-      } catch {
-        localStorage.removeItem('regenesys_user');
-      }
-    }
-  });
-
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [aiSidebarOpen, setAiSidebarOpen] = useState(false);
 
-  const checkEmail = (email) => {
-    const users = JSON.parse(localStorage.getItem('regenesys_users') || '[]');
-    return users.find(u => u.email === email);
-  };
-  const signup = (name, email, password) => {
-    // Get existing users
-    const users = JSON.parse(localStorage.getItem('regenesys_users') || '[]');
-    
-    // Check if email already exists
-    if (users.find(u => u.email === email)) {
-      return { success: false, error: 'An account with this email already exists.' };
-    }
-
-    // Create new user
-    const newUser = {
-      id: Date.now().toString(),
-      name,
-      email,
-      password, // In production, this would be hashed
-      createdAt: new Date().toISOString(),
-      avatar: name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+  // Restore session on mount
+  useEffect(() => {
+    const initAuth = async () => {
+      const token = localStorage.getItem('regenesys_token');
+      if (token) {
+        try {
+          const response = await fetch(`${API_BASE_URL}/profile/me`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          if (response.ok) {
+            const profile = await response.json();
+            setUser({
+              id: profile.id,
+              name: profile.full_name || profile.email?.split('@')[0] || 'User',
+              email: profile.email,
+              avatar: profile.avatar_url || (profile.full_name ? profile.full_name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U')
+            });
+          } else {
+            // Token expired or invalid
+            localStorage.removeItem('regenesys_token');
+            localStorage.removeItem('regenesys_refresh_token');
+          }
+        } catch (error) {
+          console.error('Failed to restore session:', error);
+        }
+      }
+      setLoading(false);
     };
+    initAuth();
+  }, []);
 
-    users.push(newUser);
-    localStorage.setItem('regenesys_users', JSON.stringify(users));
-
-    const sessionUser = { id: newUser.id, name: newUser.name, email: newUser.email, avatar: newUser.avatar };
-    setUser(sessionUser);
-    localStorage.setItem('regenesys_user', JSON.stringify(sessionUser));
-
-    return { success: true };
+  const checkEmail = async (email) => {
+    // Note: Backend might need a dedicated check-email endpoint for better UX
+    // For now, we simulate success or use register's logic
+    return false; 
   };
 
-  const login = (email, password) => {
-    // Admin Access for Testing
-    if (email === 'admin@regenesys.com' && password === 'admin123') {
-      const adminUser = { id: 'admin', name: 'Admin User', email: 'admin@regenesys.com', avatar: 'AD' };
-      setUser(adminUser);
-      localStorage.setItem('regenesys_user', JSON.stringify(adminUser));
+  const signup = async (name, email, password) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return { success: false, error: data.detail || 'Signup failed' };
+      }
+
+      // If signup successful, we can optionally create the profile immediately
+      // or just log them in
+      return await login(email, password);
+    } catch (error) {
+      return { success: false, error: 'Could not connect to authentication server.' };
+    }
+  };
+
+  const login = async (email, password) => {
+    try {
+      const formData = new URLSearchParams();
+      formData.append('username', email);
+      formData.append('password', password);
+
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return { success: false, error: data.detail || 'Invalid email or password.' };
+      }
+
+      localStorage.setItem('regenesys_token', data.access_token);
+      localStorage.setItem('regenesys_refresh_token', data.refresh_token);
+
+      // Fetch profile
+      const profileResponse = await fetch(`${API_BASE_URL}/profile/me`, {
+        headers: { 'Authorization': `Bearer ${data.access_token}` }
+      });
+      
+      const profile = await profileResponse.json();
+      const sessionUser = {
+        id: profile.id,
+        name: profile.full_name || email.split('@')[0],
+        email: email,
+        avatar: profile.avatar_url || (profile.full_name ? profile.full_name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U')
+      };
+
+      setUser(sessionUser);
       return { success: true };
+    } catch (error) {
+      return { success: false, error: 'Connection error. Please try again later.' };
     }
-
-    // Standard User Access for Testing
-    if (email === 'user@regenesys.com' && password === 'user1234') {
-      const demoUser = { id: 'user-1', name: 'Demo User', email: 'user@regenesys.com', avatar: 'DU' };
-      setUser(demoUser);
-      localStorage.setItem('regenesys_user', JSON.stringify(demoUser));
-      return { success: true };
-    }
-
-    const users = JSON.parse(localStorage.getItem('regenesys_users') || '[]');
-    const found = users.find(u => u.email === email && u.password === password);
-
-    if (!found) {
-      return { success: false, error: 'Invalid email or password.' };
-    }
-
-    const sessionUser = { id: found.id, name: found.name, email: found.email, avatar: found.avatar };
-    setUser(sessionUser);
-    localStorage.setItem('regenesys_user', JSON.stringify(sessionUser));
-
-    return { success: true };
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('regenesys_user');
+    localStorage.removeItem('regenesys_token');
+    localStorage.removeItem('regenesys_refresh_token');
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout, aiSidebarOpen, setAiSidebarOpen, checkEmail }}>
+    <AuthContext.Provider value={{ user, login, signup, logout, aiSidebarOpen, setAiSidebarOpen, checkEmail, loading }}>
       {children}
     </AuthContext.Provider>
   );

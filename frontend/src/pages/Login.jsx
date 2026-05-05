@@ -12,7 +12,7 @@ const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -27,25 +27,15 @@ const Login = () => {
       return;
     }
 
-    if (form.password.length < 8) {
-      setError('Password must be at least 8 characters long.');
-      return;
-    }
-
     setLoading(true);
-    setTimeout(() => {
-      const result = login(form.email, form.password);
-      setLoading(false);
-      if (result.success) {
-        if (form.email === 'admin@regenesys.com') {
-          navigate('/private-gpt');
-        } else {
-          navigate('/');
-        }
-      } else {
-        setError(result.error);
-      }
-    }, 600);
+    const result = await login(form.email, form.password);
+    setLoading(false);
+    
+    if (result.success) {
+      navigate('/private-gpt');
+    } else {
+      setError(result.error);
+    }
   };
 
   return (
