@@ -87,19 +87,23 @@ const Navbar = ({ onEnrollClick }) => {
 
       <div className="ml-auto flex items-center gap-3">
         {/* AI Assistant Button - Visible for everyone */}
-        <button 
-          onClick={() => {
-            if (user) {
-              setAiSidebarOpen(true);
-            } else {
-              navigate('/login');
-            }
-          }}
-          className={`hidden md:flex items-center justify-center w-10 h-10 rounded-full transition-all ${useWhiteText ? 'bg-white/15 text-white hover:bg-white/25 border border-white/20' : 'bg-regenesys-purple/10 text-regenesys-purple hover:bg-regenesys-purple/20'}`} 
-          title="Open AI Assistant"
-        >
-          <Sparkles size={18} />
-        </button>
+        {user ? (
+          <button 
+            onClick={() => setAiSidebarOpen(true)}
+            className={`hidden md:flex items-center justify-center w-10 h-10 rounded-full transition-all ${useWhiteText ? 'bg-white/15 text-white hover:bg-white/25 border border-white/20' : 'bg-regenesys-purple/10 text-regenesys-purple hover:bg-regenesys-purple/20'}`} 
+            title="Open AI Assistant"
+          >
+            <Sparkles size={18} />
+          </button>
+        ) : (
+          <Link 
+            to="/login"
+            className={`hidden md:flex items-center justify-center w-10 h-10 rounded-full transition-all ${useWhiteText ? 'bg-white/15 text-white hover:bg-white/25 border border-white/20' : 'bg-regenesys-purple/10 text-regenesys-purple hover:bg-regenesys-purple/20'}`} 
+            title="Login to use AI Assistant"
+          >
+            <Sparkles size={18} />
+          </Link>
+        )}
 
         {user?.email === 'admin@regenesys.com' ? (
           <Link to="/private-gpt" className={`hidden md:flex items-center justify-center w-10 h-10 rounded-full transition-all ${useWhiteText ? 'bg-white/15 text-white hover:bg-white/25 border border-white/20' : 'bg-regenesys-purple/10 text-regenesys-purple hover:bg-regenesys-purple/20'}`} title="PrivateGPT">
@@ -145,11 +149,25 @@ const Navbar = ({ onEnrollClick }) => {
               </div>
               <MobileLink to="/success-stories" onClick={() => setIsMobileMenuOpen(false)}>Success Stories</MobileLink>
               <MobileLink to="/contact" onClick={() => setIsMobileMenuOpen(false)}>Contact Us</MobileLink>
-              {user?.email === 'admin@regenesys.com' ? (
-                <MobileLink to="/private-gpt" onClick={() => setIsMobileMenuOpen(false)}>PrivateGPT</MobileLink>
-              ) : !user && (
-                <MobileLink to="/login" onClick={() => setIsMobileMenuOpen(false)}>Login</MobileLink>
-              )}
+              <div className="flex items-center gap-4">
+                {!user ? (
+                  <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white">
+                    <Sparkles size={24} />
+                  </Link>
+                ) : (
+                  <button 
+                    onClick={() => { setIsMobileMenuOpen(false); setAiSidebarOpen(true); }}
+                    className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white"
+                  >
+                    <Sparkles size={24} />
+                  </button>
+                )}
+                {!user ? (
+                  <MobileLink to="/login" onClick={() => setIsMobileMenuOpen(false)}>Login</MobileLink>
+                ) : (
+                  <button onClick={() => { setIsMobileMenuOpen(false); logout(); }} className="text-3xl font-black text-white text-left">Logout</button>
+                )}
+              </div>
             </div>
             <button onClick={() => { setIsMobileMenuOpen(false); onEnrollClick(); }} className="mt-auto w-full bg-regenesys-gold text-regenesys-navy py-6 rounded-2xl font-black text-xl shadow-premium-xl active:scale-95 transition-transform">GET STARTED NOW</button>
           </motion.div>
