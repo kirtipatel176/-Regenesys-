@@ -147,3 +147,13 @@ async def global_exception_handler(request, exc):
         status_code=500,
         content={"detail": "Internal Server Error", "error_message": str(exc), "error_type": str(type(exc))}
     )
+
+from fastapi.exceptions import ResponseValidationError
+@app.exception_handler(ResponseValidationError)
+async def validation_exception_handler(request, exc):
+    import logging
+    logging.error(f"Response validation error: {exc}")
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Response Validation Error", "errors": exc.errors()}
+    )
