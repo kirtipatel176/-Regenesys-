@@ -57,32 +57,48 @@ async def upload_document(
     if file_size > settings.MAX_UPLOAD_SIZE:
         raise HTTPException(status_code=400, detail="File too large. Max size is 25MB.")
 
-    ext = os.path.splitext(file.filename)[1]
-    secure_filename = f"{uuid.uuid4()}{ext}"
-    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
-    file_path = os.path.join(settings.UPLOAD_DIR, secure_filename)
+    try:
+        ext = os.path.splitext(file.filename)[1]
+        secure_filename = f"{uuid.uuid4()}{ext}"
+        
+        # Ensure directory exists
+        abs_upload_dir = os.path.abspath(settings.UPLOAD_DIR)
+        os.makedirs(abs_upload_dir, exist_ok=True)
+        
+        file_path = os.path.join(abs_upload_dir, secure_filename)
+        logger.info(f"Uploading file to: {file_path}")
 
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
 
-    document = Document(
-        uploaded_by=current_user.id,
-        filename=secure_filename,
-        original_name=file.filename,
-        mime_type=file.content_type,
-        size_bytes=file_size,
-        storage_path=file_path,
-        processing_status=ProcessingStatus.pending,
-    )
-    db.add(document)
-    await db.commit()
-    await db.refresh(document)
+        document = Document(
+            uploaded_by=current_user.id,
+            filename=secure_filename,
+            original_name=file.filename,
+            mime_type=file.content_type,
+            size_bytes=file_size,
+            storage_path=file_path,
+            processing_status=ProcessingStatus.pending,
+        )
+        db.add(document)
+        await db.commit()
+        await db.refresh(document)
 
-    # Trigger background processing — parse, chunk, and build Neo4j graph
-    background_tasks.add_task(process_document_async, str(document.id))
-    logger.info("Queued background task for document %s", document.id)
+        # Trigger background processing — parse, chunk, and build Neo4j graph
+        background_tasks.add_task(process_document_async, str(document.id))
+        logger.info("Queued background task for document %s", document.id)
 
-    return document
+        return document
+    except Exception as e:
+        logger.error(f"Upload failed: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "message": "Failed to save file on server",
+                "error": str(e),
+                "path": settings.UPLOAD_DIR
+            }
+        )
 
 
 @router.get("", response_model=List[DocumentResponse])
