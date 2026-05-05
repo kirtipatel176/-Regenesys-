@@ -36,34 +36,34 @@ if settings.SENTRY_DSN:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # ------------------------------------------------------------------ #
-    # Startup Validation
+    # Startup (Non-blocking as much as possible)
     # ------------------------------------------------------------------ #
+    logger.info("Application starting up...")
 
-    # 1. DB Connection Check
+    # We'll run checks but not fail the whole app startup if one is slow
+    # as Render has a strict port-binding timeout.
     try:
+        # DB Connection Check
         async with engine.connect() as _:
             pass
         logger.info("Database connection successful.")
     except Exception as e:
-        logger.error(f"Database connection failed: {e}")
+        logger.error(f"Database connection check failed: {e}")
 
-    # 2. Redis Ping Check
+    # Redis Ping Check
     try:
         await redis_client.ping()
         logger.info("Redis connection successful.")
     except Exception as e:
-        logger.error(f"Redis connection failed: {e}")
+        logger.error(f"Redis connection check failed: {e}")
 
-    # 3. Neo4j Connectivity Check (driver is lazily created here)
+    # Neo4j Connectivity Check
     try:
-        get_neo4j_driver()  # Eagerly initialise the singleton
-        neo4j_ok = await ping_neo4j()
-        if neo4j_ok:
+        get_neo4j_driver()
+        if await ping_neo4j():
             logger.info("Neo4j connection successful.")
-        else:
-            logger.warning("Neo4j ping failed — graph features will not work.")
     except Exception as e:
-        logger.error(f"Neo4j initialisation error: {e}")
+        logger.error(f"Neo4j initialisation check failed: {e}")
 
     # 4. LLM Provider Check
     if settings.LLM_PROVIDER.lower() == "gemini" and (
@@ -84,6 +84,7 @@ async def lifespan(app: FastAPI):
     # ------------------------------------------------------------------ #
     # Shutdown Cleanup
     # ------------------------------------------------------------------ #
+    logger.info("Application shutting down...")
     await engine.dispose()
     await redis_client.aclose()
     await close_neo4j_driver()
