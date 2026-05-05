@@ -31,79 +31,97 @@ async def ask_question(
     current_user: User = Depends(deps.get_current_user),
     db: AsyncSession = Depends(deps.get_db),
 ):
-    # 1. Handle Session
-    if request.session_id:
-        result = await db.execute(
-            select(ChatSession).filter(
-                ChatSession.id == request.session_id,
-                ChatSession.user_id == current_user.id,
+    try:
+        # 1. Handle Session
+        if request.session_id:
+            result = await db.execute(
+                select(ChatSession).filter(
+                    ChatSession.id == request.session_id,
+                    ChatSession.user_id == current_user.id,
+                )
             )
+            session = result.scalars().first()
+            if not session:
+                raise HTTPException(status_code=404, detail="Chat session not found")
+        else:
+            title = (
+                request.question[:50] + "..."
+                if len(request.question) > 50
+                else request.question
+            )
+            session = ChatSession(user_id=current_user.id, title=title)
+            db.add(session)
+            await db.commit()
+            await db.refresh(session)
+
+        # 2. Save user message
+        user_msg = ChatMessage(
+            session_id=session.id, role=RoleType.user, content=request.question
         )
-        session = result.scalars().first()
-        if not session:
-            raise HTTPException(status_code=404, detail="Chat session not found")
-    else:
-        # Create a new session
-        title = (
-            request.question[:50] + "..."
-            if len(request.question) > 50
-            else request.question
+        db.add(user_msg)
+        await db.commit() # Commit user message immediately
+
+        # 3. Hybrid Retrieval via Neo4j graph traversal
+        top_chunks = await retrieve_relevant_chunks(
+            user_id=str(current_user.id),
+            question=request.question,
         )
-        session = ChatSession(user_id=current_user.id, title=title)
-        db.add(session)
+
+        sources = [
+            SourceDetail(
+                document_id=UUID(str(chunk.document_id)),
+                filename=chunk.filename,
+                page_number=chunk.page_number,
+                content_snippet=chunk.content[:200],
+            )
+            for chunk in top_chunks
+        ]
+
+        # 4. Generate Answer via configured LLM provider (Bedrock / Gemini)
+        rag_res = generate_rag_answer(request.question, top_chunks)
+        answer_text = rag_res["text"]
+        citations = [
+            {"source_index": i + 1, "document_id": str(s.document_id)}
+            for i, s in enumerate(sources)
+        ]
+
+        # 5. Save assistant message
+        assistant_msg = ChatMessage(
+            session_id=session.id,
+            role=RoleType.assistant,
+            content=answer_text,
+            citations=citations,
+            token_usage=rag_res.get("usage"),
+            model_used=rag_res.get("model"),
+        )
+        db.add(assistant_msg)
         await db.commit()
-        await db.refresh(session)
 
-    # 2. Save user message
-    user_msg = ChatMessage(
-        session_id=session.id, role=RoleType.user, content=request.question
-    )
-    db.add(user_msg)
-
-    # 3. Hybrid Retrieval via Neo4j graph traversal
-    top_chunks = await retrieve_relevant_chunks(
-        user_id=str(current_user.id),
-        question=request.question,
-    )
-
-    sources = [
-        SourceDetail(
-            document_id=UUID(chunk.document_id),
-            filename=chunk.filename,
-            page_number=chunk.page_number,
-            content_snippet=chunk.content[:200],
+        return ChatAskResponse(
+            session_id=session.id,
+            answer=answer_text,
+            citations=citations,
+            sources=sources,
+            confidence_score=0.95 if top_chunks else 0.0,
         )
-        for chunk in top_chunks
-    ]
-
-    # 4. Generate Answer via configured LLM provider (Bedrock / Gemini)
-    rag_res = generate_rag_answer(request.question, top_chunks)
-    answer_text = rag_res["text"]
-    citations = [
-        {"source_index": i + 1, "document_id": str(s.document_id)}
-        for i, s in enumerate(sources)
-    ]
-
-    # 5. Save assistant message
-    assistant_msg = ChatMessage(
-        session_id=session.id,
-        role=RoleType.assistant,
-        content=answer_text,
-        citations=citations,
-        token_usage=rag_res.get("usage"),
-        model_used=rag_res.get("model"),
-    )
-    db.add(assistant_msg)
-    await db.commit()
-
-    return ChatAskResponse(
-        session_id=session.id,
-        answer=answer_text,
-        citations=citations,
-        sources=sources,
-        confidence_score=0.95 if top_chunks else 0.0,
-    )
-
+    except Exception as e:
+        import traceback
+        tb = traceback.format_exc()
+        import logging
+        logging.getLogger(__name__).error(f"Error in ask_question: {tb}")
+        
+        # Return the error AS THE AI ANSWER so we can see it on the frontend!
+        # Create a dummy session id if needed
+        import uuid
+        err_session_id = request.session_id if request.session_id else uuid.uuid4()
+        
+        return ChatAskResponse(
+            session_id=err_session_id,
+            answer=f"SERVER ERROR TRACEBACK:\n\n{tb}",
+            citations=[],
+            sources=[],
+            confidence_score=0.0
+        )
 
 @router.post("/ask/stream")
 async def ask_question_stream(
