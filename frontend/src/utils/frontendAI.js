@@ -49,6 +49,36 @@ export const getFrontendAIResponse = async (query, documents = []) => {
   }
 };
 
+export async function generateQuiz(docContents, difficulty = 'Medium') {
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    const prompt = `
+      Based on the following document content, generate a ${difficulty} difficulty quiz.
+      Provide 5 Multiple Choice Questions (MCQs).
+      Return the response strictly as a JSON array of objects.
+      Each object must have:
+      - question: The question text
+      - options: An array of 4 strings
+      - correctAnswer: The exact string from the options that is correct
+      - explanation: A brief explanation why it's correct
+
+      Document Content:
+      ${docContents.map(d => d.content).join("\n\n").slice(0, 10000)}
+    `;
+
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+    
+    // Clean JSON from markdown if necessary
+    const jsonStr = text.match(/\[.*\]/s)?.[0] || text;
+    return JSON.parse(jsonStr);
+  } catch (error) {
+    console.error("Quiz Generation Error:", error);
+    throw error;
+  }
+};
+
 /**
  * Helper to convert file to base64
  */
