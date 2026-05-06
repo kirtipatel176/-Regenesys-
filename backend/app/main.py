@@ -104,11 +104,9 @@ app.add_middleware(RequestIDMiddleware)
 # Set all CORS enabled origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://localhost:8000",
-        "http://localhost:5173",
+    allow_origins=[str(origin).strip("/") for origin in settings.BACKEND_CORS_ORIGINS] + [
         "https://private-gpt-ochre.vercel.app",
+        "https://private-gpt-api.onrender.com",
     ],
     allow_credentials=True,
     allow_methods=["*"],
