@@ -109,7 +109,7 @@ const PrivateGPTPage = () => {
   }, [notes, NOTES_KEY]);
 
   const [activeConvId, setActiveConvId] = useState(() => {
-    return conversations[0]?.id || '1';
+    return conversations?.[0]?.id || '1';
   });
   
   const [selectedNote, setSelectedNote] = useState(null);
@@ -232,7 +232,7 @@ const PrivateGPTPage = () => {
 
     // Call the real API
     // Only pass session ID if it looks like a real UUID from the backend
-    const isValidUUID = activeConvId && activeConvId.length === 36;
+    const isValidUUID = activeConvId?.length === 36;
     const { text: response, suggestions, sessionId, citations, sources: aiSources } = await getAIResponse(msg, isValidUUID ? activeConvId : null);
     
     setIsTyping(false);
@@ -277,7 +277,7 @@ const PrivateGPTPage = () => {
         return { ...c, messages: c.messages.map(m => m.id === aiMsgId ? { ...m, text: currentText } : m) };
       }));
 
-      if (charIndex >= response.length) {
+      if (charIndex >= (response?.length || 0)) {
         clearInterval(streamRef.current);
         setIsStreaming(false);
         setStreamingText('');
@@ -386,7 +386,7 @@ const PrivateGPTPage = () => {
               {isAdmin && (
                 <div>
                   <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2 mb-2">Conversations</div>
-                  {conversations.map(conv => (
+                  {conversations?.map(conv => (
                     <div
                       key={conv.id}
                       onClick={() => setActiveConvId(conv.id)}
@@ -409,12 +409,12 @@ const PrivateGPTPage = () => {
 
               {/* Saved Notes Section */}
               <div>
-                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2 mb-2">My Saved Notes ({notes.length})</div>
-                {notes.length === 0 ? (
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2 mb-2">My Saved Notes ({(notes?.length || 0)})</div>
+                {(!notes || notes.length === 0) ? (
                   <div className="px-2 py-4 text-[11px] text-gray-400 italic">No notes saved yet. Click "Save to note" on any AI response.</div>
                 ) : (
                   <div className="space-y-2">
-                    {notes.map(note => (
+                    {notes?.map(note => (
                       <div 
                         key={note.id} 
                         onClick={() => setSelectedNote(note)}
@@ -698,7 +698,7 @@ const PrivateGPTPage = () => {
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-3 space-y-2">
-                  {sources.map((src) => (
+                  {sources?.map((src) => (
                     <div key={src.id} className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-100 hover:shadow-sm transition-all group relative">
                       <div className="w-9 h-9 rounded-lg bg-regenesys-purple/10 flex items-center justify-center shrink-0">
                         <FileText size={16} className="text-regenesys-purple" />
