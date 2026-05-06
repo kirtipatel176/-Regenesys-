@@ -3,7 +3,7 @@ import { Sparkles, X, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { getAIResponse } from '../utils/aiUtils';
-import { getFrontendAIResponse, fileToBase64, fileToText } from '../utils/frontendAI';
+import { fileToBase64, fileToText } from '../utils/frontendAI';
 
 const suggestedQueries = [
   "What programmes?",
@@ -67,27 +67,9 @@ const RightSidebarAI = () => {
     setIsTyping(true);
 
     try {
-      // 1. Try Backend RAG first (Database Mode)
-      let aiResponse;
-      try {
-        const response = await getAIResponse(msg);
-        aiResponse = response.text;
-        
-        // If backend found no context or is offline, try frontend fallback
-        const isNoAnswer = aiResponse?.includes("No relevant answer found");
-        if ((!aiResponse || isNoAnswer || aiResponse.includes("unable to connect")) && localDocContents?.length > 0) {
-           throw new Error("No context");
-        }
-      } catch (e) {
-        if (localDocContents?.length > 0) {
-          const frontendRes = await getFrontendAIResponse(msg, localDocContents);
-          aiResponse = frontendRes.text;
-        } else {
-          // If no documents and backend fails, use general AI
-          const frontendRes = await getFrontendAIResponse(msg, []);
-          aiResponse = frontendRes.text;
-        }
-      }
+      // Backend ONLY Mode
+      const response = await getAIResponse(msg);
+      const aiResponse = response.text;
 
       // Simulate thinking delay
       setTimeout(() => {

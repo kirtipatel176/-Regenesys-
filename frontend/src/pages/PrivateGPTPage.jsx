@@ -10,7 +10,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { getAIResponse } from '../utils/aiUtils';
-import { getFrontendAIResponse, fileToBase64, fileToText } from '../utils/frontendAI';
+import { fileToBase64, fileToText } from '../utils/frontendAI';
 import api from '../api';
 
 const GeminiIcon = ({ className = "w-5 h-5" }) => (
@@ -300,7 +300,7 @@ const PrivateGPTPage = () => {
     setInput('');
     setIsTyping(true);
 
-    // 1. Try Backend RAG first (Database Mode)
+    // Backend ONLY AI Mode
     let response, aiSources, sessionId;
     try {
       const isValidUUID = activeConvId?.length === 36;
@@ -309,21 +309,8 @@ const PrivateGPTPage = () => {
       aiSources = backendRes.sources;
       sessionId = backendRes.session_id;
     } catch (err) {
-      console.warn("Backend AI failed, falling back to local Gemini...");
-    }
-
-    // 2. Fallback to Frontend AI if backend failed or said "No relevant answer"
-    const isNoAnswer = response?.includes("No relevant answer found");
-    const backendFoundNoContext = !aiSources || aiSources.length === 0;
-
-    if ((!response || isNoAnswer || backendFoundNoContext) && localDocContents?.length > 0) {
-      try {
-        const frontendRes = await getFrontendAIResponse(msg, localDocContents);
-        response = frontendRes.text;
-        aiSources = frontendRes.sources?.map(name => ({ filename: name }));
-      } catch (err) {
-        console.error("Frontend fallback failed:", err);
-      }
+      console.error("AI Error:", err);
+      response = "Sorry, I encountered an error connecting to the AI server.";
     }
     
     setIsTyping(false);
