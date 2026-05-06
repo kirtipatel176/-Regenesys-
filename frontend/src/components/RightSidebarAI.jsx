@@ -26,7 +26,7 @@ const Typewriter = ({ text, onComplete }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
-    if (currentIndex < text.length) {
+    if (currentIndex < (text?.length || 0)) {
       const timeout = setTimeout(() => {
         setDisplayText((prev) => prev + text[currentIndex]);
         setCurrentIndex((prev) => prev + 1);
@@ -55,7 +55,7 @@ const RightSidebarAI = () => {
     }
   }, [messages, isTyping]);
 
-  const handleSend = (text) => {
+  const handleSend = async (text) => {
     const msg = typeof text === 'string' ? text : input;
     if (!msg.trim() || isTyping) return;
 
@@ -64,18 +64,29 @@ const RightSidebarAI = () => {
     setInput('');
     setIsTyping(true);
 
-    // Get response from shared utility
-    const { text: aiResponse } = getAIResponse(msg);
+    try {
+      // Get response from shared utility - must be awaited
+      const response = await getAIResponse(msg);
+      const aiResponse = response.text;
 
-    // Simulate thinking delay
-    setTimeout(() => {
+      // Simulate thinking delay
+      setTimeout(() => {
+        setIsTyping(false);
+        setMessages(prev => [...prev, { 
+          role: 'ai', 
+          text: aiResponse || "I'm sorry, I couldn't generate an answer.",
+          isAnimated: false
+        }]);
+      }, 800);
+    } catch (error) {
+      console.error("SidePanel AI Error:", error);
       setIsTyping(false);
       setMessages(prev => [...prev, { 
         role: 'ai', 
-        text: aiResponse,
-        isAnimated: false
+        text: "I'm having trouble connecting to the AI. Please check your connection.",
+        isAnimated: true
       }]);
-    }, 1200);
+    }
   };
 
   const markAsAnimated = (index) => {
