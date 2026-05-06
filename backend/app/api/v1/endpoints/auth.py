@@ -46,26 +46,14 @@ async def register(user_in: UserCreate, db: AsyncSession = Depends(deps.get_db))
     user = User(
         email=user_in.email,
         password_hash=security.get_password_hash(user_in.password),
-        is_verified=False,
+        is_verified=True,
     )
     db.add(user)
     await db.commit()
     await db.refresh(user)
 
-    # Generate and send OTP (Re-enabled with master bypass available)
-    otp = await create_and_store_otp(user.email)
-    # await send_otp_email(user.email, otp) # Skipping email for now
-
-    return {
-        "id": user.id,
-        "email": user.email,
-        "role": user.role,
-        "is_active": user.is_active,
-        "is_verified": user.is_verified,
-        "created_at": user.created_at,
-        "updated_at": user.updated_at,
-        "otp": otp # Returning OTP to frontend for auto-fill
-    }
+    # OTP logic completely disabled
+    return user
 
 
 @router.post("/verify-otp")

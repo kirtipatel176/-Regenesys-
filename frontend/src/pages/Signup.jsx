@@ -63,17 +63,17 @@ const Signup = () => {
     setLoading(false);
     
     if (result.success) {
-      setStep(2);
-      setOtpSent(true);
-      
-      // Auto-fill OTP from backend response
-      if (result.data?.otp) {
-        const otpArray = result.data.otp.split('');
-        setOtp(otpArray);
+      // Direct login to skip OTP page
+      const loginResult = await login(form.email, form.password);
+      if (loginResult.success) {
+        if (form.email === 'admin@regenesys.com') {
+          navigate('/private-gpt');
+        } else {
+          navigate('/');
+        }
+      } else {
+        setError(loginResult.error || 'Registration successful, but login failed. Please sign in manually.');
       }
-
-      // Auto-hide success message after 5s
-      setTimeout(() => setOtpSent(false), 5000);
     } else {
       setError(result.error || 'Registration failed.');
     }
