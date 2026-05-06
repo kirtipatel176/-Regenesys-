@@ -174,22 +174,18 @@ const PrivateGPTPage = () => {
         return;
       }
 
-      // 2. Fallback to server if not local
-      const token = localStorage.getItem('access_token');
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'}/documents/download/${docId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      // 2. Fallback to server if not local (using standard API instance)
+      setToast({ show: true, message: "Opening document..." });
+      const response = await api.get(`/documents/download/${docId}`, {
+        responseType: 'blob'
       });
       
-      if (!response.ok) throw new Error('Failed to download document');
-      
-      const blob = await response.blob();
+      const blob = new Blob([response.data], { type: response.headers['content-type'] });
       const url = window.URL.createObjectURL(blob);
       window.open(url, '_blank');
     } catch (error) {
       console.error("Error opening document:", error);
-      alert("Failed to open document. (Server might be offline)");
+      setToast({ show: true, message: "Failed to open document. Server might be offline." });
     }
   };
 
@@ -253,12 +249,18 @@ const PrivateGPTPage = () => {
         setSources(prev => prev.filter(s => s.id !== id));
         setLocalDocContents(prev => prev.filter(d => d.id !== id));
       } else {
-        await api.delete(`/documents/${id}`);
+        try {
+          await api.delete(`/documents/${id}`);
+        } catch (err) {
+          // If 404, the document is already gone from server, just proceed to remove from UI
+          if (err.response?.status !== 404) throw err;
+        }
         fetchSources();
       }
       setToast({ show: true, message: "Source removed." });
     } catch (error) {
       console.error("Delete failed:", error);
+      setToast({ show: true, message: "Failed to delete from server." });
     }
   };
 
