@@ -78,12 +78,35 @@ const PrivateGPTPage = () => {
 
   const [sources, setSources] = useState([]);
 
-  // Local-Only Mode: fetchSources is a no-op
-  const fetchSources = async () => {};
+  // Fetch sources from backend
+  const fetchSources = async () => {
+    try {
+      const response = await api.get('/documents');
+      const mapped = response.data.map(doc => ({
+        id: doc.id,
+        name: doc.original_name,
+        pages: doc.page_count || '?',
+        type: doc.mime_type.split('/').pop().toUpperCase(),
+        status: doc.processing_status
+      }));
+      setSources(mapped);
+    } catch (error) {
+      console.error("Failed to fetch documents:", error);
+    }
+  };
 
   useEffect(() => {
-    // Rely on AuthContext/localDocContents for persistence
-  }, []);
+    if (isAdmin) {
+      fetchSources();
+      // Poll for status updates
+      const interval = setInterval(() => {
+        if (sources?.some(s => s.status === 'pending' || s.status === 'processing')) {
+          fetchSources();
+        }
+      }, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [isAdmin, sources?.length]);
 
   // Persist conversations to localStorage
   useEffect(() => {
@@ -184,7 +207,7 @@ const PrivateGPTPage = () => {
     setUploadProgress(30);
 
     try {
-      // 1. Process LOCALLY (Browser Storage)
+      // 1. Process LOCALLY for instant AI
       const base64 = await fileToBase64(file);
       const text = await fileToText(file);
       
@@ -198,20 +221,27 @@ const PrivateGPTPage = () => {
 
       setLocalDocContents(prev => [...prev, localDoc]);
       
-      // Add to visual sources list
-      const visualDoc = {
-        id: localDoc.id,
-        name: file.name,
-        pages: '?',
-        type: file.type?.split('/')[1]?.toUpperCase() || 'DOC'
-      };
-      setSources(prev => [visualDoc, ...prev]);
+      // 2. Upload to BACKEND for Database persistence
+      const formData = new FormData();
+      formData.append('file', file);
 
-      setToast({ show: true, message: "Document saved locally and ready for AI!" });
+      setToast({ show: true, message: "Syncing with database..." });
+      
+      try {
+        await api.post('/documents/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        setToast({ show: true, message: "Document saved to database!" });
+        fetchSources(); // Refresh from backend
+      } catch (err) {
+        console.warn("Backend sync failed, using Local AI fallback.");
+        setToast({ show: true, message: "Local mode active (Server offline)" });
+      }
+
       setUploading(false);
       e.target.value = '';
     } catch (error) {
-      console.error("Local processing error:", error);
+      console.error("Processing error:", error);
       setUploading(false);
       setToast({ show: true, message: "Failed to process file." });
     }
@@ -219,9 +249,14 @@ const PrivateGPTPage = () => {
 
   const handleDeleteSource = async (id) => {
     try {
-      setSources(prev => prev.filter(s => s.id !== id));
-      setLocalDocContents(prev => prev.filter(d => d.id !== id));
-      setToast({ show: true, message: "Source removed locally." });
+      if (id.startsWith('local-')) {
+        setSources(prev => prev.filter(s => s.id !== id));
+        setLocalDocContents(prev => prev.filter(d => d.id !== id));
+      } else {
+        await api.delete(`/documents/${id}`);
+        fetchSources();
+      }
+      setToast({ show: true, message: "Source removed." });
     } catch (error) {
       console.error("Delete failed:", error);
     }
@@ -263,21 +298,29 @@ const PrivateGPTPage = () => {
     setInput('');
     setIsTyping(true);
 
-    // Frontend ONLY AI Mode
+    // 1. Try Backend RAG first (Database Mode)
     let response, aiSources;
     try {
-      if (localDocContents?.length > 0) {
+      const isValidUUID = activeConvId?.length === 36;
+      const backendRes = await getAIResponse(msg, isValidUUID ? activeConvId : null);
+      response = backendRes.text;
+      aiSources = backendRes.sources;
+    } catch (err) {
+      console.warn("Backend AI failed, falling back to local Gemini...");
+    }
+
+    // 2. Fallback to Frontend AI if backend failed or said "No relevant answer"
+    const isNoAnswer = response?.includes("No relevant answer found");
+    const backendFoundNoContext = !aiSources || aiSources.length === 0;
+
+    if ((!response || isNoAnswer || backendFoundNoContext) && localDocContents?.length > 0) {
+      try {
         const frontendRes = await getFrontendAIResponse(msg, localDocContents);
         response = frontendRes.text;
         aiSources = frontendRes.sources?.map(name => ({ filename: name }));
-      } else {
-        // General AI Response if no documents
-        const frontendRes = await getFrontendAIResponse(msg, []);
-        response = frontendRes.text;
+      } catch (err) {
+        console.error("Frontend fallback failed:", err);
       }
-    } catch (err) {
-      console.error("AI Error:", err);
-      response = "Sorry, I encountered an error processing your request locally.";
     }
     
     setIsTyping(false);

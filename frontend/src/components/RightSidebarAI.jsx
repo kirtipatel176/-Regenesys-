@@ -67,14 +67,26 @@ const RightSidebarAI = () => {
     setIsTyping(true);
 
     try {
-      // Frontend ONLY AI Mode
+      // 1. Try Backend RAG first (Database Mode)
       let aiResponse;
-      if (localDocContents?.length > 0) {
-        const frontendRes = await getFrontendAIResponse(msg, localDocContents);
-        aiResponse = frontendRes.text;
-      } else {
-        const frontendRes = await getFrontendAIResponse(msg, []);
-        aiResponse = frontendRes.text;
+      try {
+        const response = await getAIResponse(msg);
+        aiResponse = response.text;
+        
+        // If backend found no context or is offline, try frontend fallback
+        const isNoAnswer = aiResponse?.includes("No relevant answer found");
+        if ((!aiResponse || isNoAnswer || aiResponse.includes("unable to connect")) && localDocContents?.length > 0) {
+           throw new Error("No context");
+        }
+      } catch (e) {
+        if (localDocContents?.length > 0) {
+          const frontendRes = await getFrontendAIResponse(msg, localDocContents);
+          aiResponse = frontendRes.text;
+        } else {
+          // If no documents and backend fails, use general AI
+          const frontendRes = await getFrontendAIResponse(msg, []);
+          aiResponse = frontendRes.text;
+        }
       }
 
       // Simulate thinking delay
@@ -82,10 +94,10 @@ const RightSidebarAI = () => {
         setIsTyping(false);
         setMessages(prev => [...prev, { 
           role: 'ai', 
-          text: aiResponse || "I'm sorry, I couldn't generate an answer locally.",
+          text: aiResponse || "I'm sorry, I couldn't generate an answer.",
           isAnimated: false
         }]);
-      }, 600);
+      }, 700);
     } catch (error) {
       console.error("SidePanel AI Error:", error);
       setIsTyping(false);
