@@ -299,12 +299,13 @@ const PrivateGPTPage = () => {
     setIsTyping(true);
 
     // 1. Try Backend RAG first (Database Mode)
-    let response, aiSources;
+    let response, aiSources, sessionId;
     try {
       const isValidUUID = activeConvId?.length === 36;
       const backendRes = await getAIResponse(msg, isValidUUID ? activeConvId : null);
       response = backendRes.text;
       aiSources = backendRes.sources;
+      sessionId = backendRes.session_id;
     } catch (err) {
       console.warn("Backend AI failed, falling back to local Gemini...");
     }
