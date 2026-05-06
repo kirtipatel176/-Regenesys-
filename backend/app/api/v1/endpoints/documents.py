@@ -16,10 +16,10 @@ from fastapi import (
     BackgroundTasks,
     Depends,
     File,
-    HTTPException,
     UploadFile,
     status,
 )
+from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
@@ -155,3 +155,25 @@ async def delete_document(
     await db.delete(document)
     await db.commit()
     return None
+
+
+@router.get("/download/{id}")
+async def download_document(
+    id: uuid.UUID,
+    current_user: User = Depends(deps.get_current_user),
+    db: AsyncSession = Depends(deps.get_db),
+):
+    result = await db.execute(
+        select(Document).filter(
+            Document.id == id, Document.uploaded_by == current_user.id
+        )
+    )
+    document = result.scalars().first()
+    if not document or not os.path.exists(document.storage_path):
+        raise HTTPException(status_code=404, detail="File not found")
+
+    return FileResponse(
+        path=document.storage_path,
+        filename=document.original_name,
+        media_type=document.mime_type,
+    )

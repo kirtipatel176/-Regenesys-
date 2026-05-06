@@ -143,6 +143,26 @@ const PrivateGPTPage = () => {
     }
   }, [toast]);
 
+  const handleOpenDocument = async (docId) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'}/documents/download/${docId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) throw new Error('Failed to download document');
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    } catch (error) {
+      console.error("Error opening document:", error);
+      alert("Failed to open document.");
+    }
+  };
+
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file || uploading) return;
@@ -733,7 +753,11 @@ const PrivateGPTPage = () => {
 
                 <div className="flex-1 overflow-y-auto p-3 space-y-2">
                   {sources?.map((src) => (
-                    <div key={src.id} className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-100 hover:shadow-sm transition-all group relative">
+                    <div 
+                      key={src.id} 
+                      className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-100 hover:shadow-sm transition-all group relative cursor-pointer hover:border-violet-200"
+                      onClick={() => handleOpenDocument(src.id)}
+                    >
                       <div className="w-9 h-9 rounded-lg bg-regenesys-purple/10 flex items-center justify-center shrink-0">
                         <FileText size={16} className="text-regenesys-purple" />
                       </div>
