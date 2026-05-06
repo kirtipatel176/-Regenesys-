@@ -19,7 +19,21 @@ const GeminiIcon = ({ className = "w-5 h-5" }) => (
   </svg>
 );
 
+const MOBILE_BREAKPOINT = 768;
+
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+    const handleResize = () => setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  return isMobile;
+};
+
 const PrivateGPTPage = () => {
+  const isMobile = useIsMobile();
   const { user, logout, setLocalDocContents, localDocContents } = useAuth();
   const navigate = useNavigate();
   const isAdmin = user?.email === 'admin@regenesys.com';
@@ -64,35 +78,12 @@ const PrivateGPTPage = () => {
 
   const [sources, setSources] = useState([]);
 
-  // Fetch sources from backend
-  const fetchSources = async () => {
-    try {
-      const response = await api.get('/documents');
-      const mapped = response.data.map(doc => ({
-        id: doc.id,
-        name: doc.original_name,
-        pages: doc.page_count || '?',
-        type: doc.mime_type.split('/').pop().toUpperCase(),
-        status: doc.processing_status
-      }));
-      setSources(mapped);
-    } catch (error) {
-      console.error("Failed to fetch documents:", error);
-    }
-  };
+  // Local-Only Mode: fetchSources is a no-op
+  const fetchSources = async () => {};
 
   useEffect(() => {
-    if (isAdmin) {
-      fetchSources();
-      // Poll for status updates if any document is pending/processing
-      const interval = setInterval(() => {
-        if (sources?.some(s => s.status === 'pending' || s.status === 'processing')) {
-          fetchSources();
-        }
-      }, 3000);
-      return () => clearInterval(interval);
-    }
-  }, [isAdmin, sources?.length]); // Re-run if count changes or on mount
+    // Rely on AuthContext/localDocContents for persistence
+  }, []);
 
   // Persist conversations to localStorage
   useEffect(() => {
@@ -753,26 +744,33 @@ const PrivateGPTPage = () => {
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-3 space-y-2">
-                  {sources?.map((src) => (
+                  {sources.map(doc => (
                     <div 
-                      key={src.id} 
-                      className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-100 hover:shadow-sm transition-all group relative cursor-pointer hover:border-violet-200"
-                      onClick={() => handleOpenDocument(src.id)}
+                      key={doc.id} 
+                      onClick={() => handleOpenDocument(doc.id)}
+                      className="bg-white rounded-[18px] p-3 shadow-sm border border-gray-100 flex items-center justify-between group cursor-pointer hover:border-regenesys-purple/30 transition-all mb-3"
                     >
-                      <div className="w-9 h-9 rounded-lg bg-regenesys-purple/10 flex items-center justify-center shrink-0">
-                        <FileText size={16} className="text-regenesys-purple" />
+                      <div className="flex items-center gap-3 overflow-hidden mr-2">
+                        <div className="w-10 h-10 bg-regenesys-purple/5 rounded-lg flex items-center justify-center text-regenesys-purple shrink-0">
+                          <FileText size={20} strokeWidth={2} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[13px] font-medium text-gray-700 truncate">{doc.name}</p>
+                          <p className="text-[11px] text-gray-400 flex items-center gap-2 mt-0.5">
+                            <span>{doc.type}</span>
+                            <span className="w-1 h-1 rounded-full bg-gray-200" />
+                            <span className="text-green-600 font-bold uppercase text-[9px]">Ready</span>
+                          </p>
+                        </div>
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="text-[12px] font-semibold text-gray-700 truncate">{src.name}</div>
-                        <div className="text-[10px] text-gray-400">{src.pages} pages · {src.type}</div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); handleDeleteSource(doc.id); }} 
+                          className="opacity-0 group-hover:opacity-100 p-2 text-gray-400 hover:text-red-500 transition-all rounded-lg hover:bg-red-50"
+                        >
+                          <Trash2 size={16} />
+                        </button>
                       </div>
-                      <button 
-                        onClick={() => handleDeleteSource(src.id)}
-                        className="opacity-0 group-hover:opacity-100 p-2 text-gray-400 hover:text-red-500 transition-all rounded-lg hover:bg-red-50"
-                        title="Remove source"
-                      >
-                        <Trash2 size={14} />
-                      </button>
                     </div>
                   ))}
                 </div>
