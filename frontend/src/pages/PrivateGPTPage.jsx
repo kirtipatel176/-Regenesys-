@@ -225,16 +225,24 @@ const PrivateGPTPage = () => {
       
       try {
         await api.post('/documents/upload', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
+          headers: { 'Content-Type': 'multipart/form-data' },
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(percentCompleted);
+          }
         });
         setToast({ show: true, message: "Document saved to database!" });
-        fetchSources(); // Refresh from backend
+        setUploadProgress(100);
+        setTimeout(() => {
+          setUploading(false);
+          fetchSources(); // Refresh from backend
+        }, 500);
       } catch (err) {
         console.error("Backend sync failed:", err);
         const errorMsg = err.response?.data?.detail || "Server connection failed. Data kept in session only.";
         setToast({ show: true, message: errorMsg });
+        setUploading(false);
       }
-
       setUploading(false);
       e.target.value = '';
     } catch (error) {
@@ -301,19 +309,23 @@ const PrivateGPTPage = () => {
     setInput('');
     setIsTyping(true);
 
-    // Backend ONLY AI Mode
-    let response, aiSources, sessionId;
+    // Backend RAG call
+    let response = "I encountered an error processing your request. Please check your backend connection.";
+    let suggestions = [];
+    let sessionId = null;
+    let aiSources = [];
+
     try {
       const isValidUUID = activeConvId?.length === 36;
       const backendRes = await getAIResponse(msg, isValidUUID ? activeConvId : null);
-      response = backendRes.text;
-      aiSources = backendRes.sources;
-      sessionId = backendRes.session_id;
+      response = backendRes.text || response;
+      suggestions = backendRes.suggestions || [];
+      sessionId = backendRes.session_id || backendRes.sessionId || null;
+      aiSources = backendRes.sources || [];
     } catch (err) {
-      console.error("AI Error:", err);
-      response = "Sorry, I encountered an error connecting to the AI server.";
+      console.error("Backend AI failed:", err);
+      response = "Backend connection failed. Please ensure the server is running on localhost:8000.";
     }
-    
     setIsTyping(false);
     
     // If backend created a new session ID, we should update our local activeConvId
@@ -337,7 +349,7 @@ const PrivateGPTPage = () => {
       time: new Date(), 
       id: aiMsgId, 
       streaming: true,
-      followUp: [] // Fixed ReferenceError: suggestions not defined
+      followUp: suggestions
     };
     
     setConversations(prev => prev.map(c => c.id === targetConvId ? { ...c, messages: [...(c.messages || []), aiMsg] } : c));

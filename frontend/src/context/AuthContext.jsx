@@ -16,7 +16,6 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     localStorage.removeItem('regenesys_local_docs');
   }, []);
-
   // Initialize Auth State from localStorage on mount
   useEffect(() => {
     const initAuth = async () => {
@@ -142,9 +141,7 @@ export const AuthProvider = ({ children }) => {
       setAiSidebarOpen, 
       checkEmail,
       requestOTP,
-      verifyOTP,
-      localDocContents,
-      setLocalDocContents
+      verifyOTP
     }}>
       {children}
     </AuthContext.Provider>
