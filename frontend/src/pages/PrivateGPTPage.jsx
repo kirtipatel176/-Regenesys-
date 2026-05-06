@@ -10,6 +10,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { getAIResponse } from '../utils/aiUtils';
+import { getFrontendAIResponse, fileToBase64, fileToText } from '../utils/frontendAI';
 import api from '../api';
 
 const GeminiIcon = ({ className = "w-5 h-5" }) => (
@@ -19,7 +20,7 @@ const GeminiIcon = ({ className = "w-5 h-5" }) => (
 );
 
 const PrivateGPTPage = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, setLocalDocContents, localDocContents } = useAuth();
   const navigate = useNavigate();
   const isAdmin = user?.email === 'admin@regenesys.com';
   
@@ -159,6 +160,16 @@ const PrivateGPTPage = () => {
       const formData = new FormData();
       formData.append('file', file);
 
+      // --- Frontend Fallback Logic: Read file content ---
+      let docData = { name: file.name, mimeType: file.type };
+      if (file.type === "application/pdf") {
+        docData.base64 = await fileToBase64(file);
+      } else {
+        docData.textContent = await fileToText(file);
+      }
+      setLocalDocContents(prev => [...prev, docData]);
+      // ------------------------------------------------
+
       const response = await api.post('/documents/upload', formData, {
         headers: {
           'Content-Type': undefined
@@ -230,10 +241,30 @@ const PrivateGPTPage = () => {
     setInput('');
     setIsTyping(true);
 
-    // Call the real API
-    // Only pass session ID if it looks like a real UUID from the backend
-    const isValidUUID = activeConvId?.length === 36;
-    const { text: response, suggestions, sessionId, citations, sources: aiSources } = await getAIResponse(msg, isValidUUID ? activeConvId : null);
+    // 1. Try Backend RAG first
+    let response, suggestions, sessionId, aiSources;
+    try {
+      const isValidUUID = activeConvId?.length === 36;
+      const backendRes = await getAIResponse(msg, isValidUUID ? activeConvId : null);
+      response = backendRes.text;
+      suggestions = backendRes.suggestions;
+      sessionId = backendRes.sessionId;
+      aiSources = backendRes.sources;
+    } catch (err) {
+      console.warn("Backend AI failed, trying frontend fallback...");
+    }
+
+    // 2. Fallback to Frontend AI if backend failed or returned no sources and we have local files
+    const backendFoundNoContext = !aiSources || aiSources.length === 0;
+    if ((!response || backendFoundNoContext) && localDocContents?.length > 0) {
+      try {
+        const frontendRes = await getFrontendAIResponse(msg, localDocContents);
+        response = frontendRes.text;
+        aiSources = frontendRes.sources?.map(name => ({ filename: name }));
+      } catch (err) {
+        console.error("Frontend fallback also failed:", err);
+      }
+    }
     
     setIsTyping(false);
     

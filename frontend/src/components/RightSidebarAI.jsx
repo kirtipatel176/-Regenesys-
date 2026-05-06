@@ -3,6 +3,7 @@ import { Sparkles, X, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { getAIResponse } from '../utils/aiUtils';
+import { getFrontendAIResponse, fileToBase64, fileToText } from '../utils/frontendAI';
 
 const suggestedQueries = [
   "What programmes?",
@@ -42,7 +43,7 @@ const Typewriter = ({ text, onComplete }) => {
 };
 
 const RightSidebarAI = () => {
-  const { aiSidebarOpen, setAiSidebarOpen } = useAuth();
+  const { aiSidebarOpen, setAiSidebarOpen, localDocContents } = useAuth();
   const [messages, setMessages] = useState([
     { role: 'ai', text: "Hi! I'm Regenesys PrivateGPT. I can answer questions about our programmes, admissions, fees, course content, and career outcomes. How can I help you today?", isAnimated: true }
   ]);
@@ -66,9 +67,24 @@ const RightSidebarAI = () => {
     setIsTyping(true);
 
     try {
-      // Get response from shared utility - must be awaited
-      const response = await getAIResponse(msg);
-      const aiResponse = response.text;
+      // 1. Try Backend RAG first
+      let aiResponse;
+      try {
+        const response = await getAIResponse(msg);
+        aiResponse = response.text;
+        
+        // If backend found no context, try frontend fallback if we have docs
+        if ((!aiResponse || aiResponse.includes("unable to connect")) && localDocContents.length > 0) {
+           throw new Error("No context");
+        }
+      } catch (e) {
+        if (localDocContents.length > 0) {
+          const frontendRes = await getFrontendAIResponse(msg, localDocContents);
+          aiResponse = frontendRes.text;
+        } else {
+          throw e;
+        }
+      }
 
       // Simulate thinking delay
       setTimeout(() => {

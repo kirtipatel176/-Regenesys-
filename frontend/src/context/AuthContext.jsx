@@ -10,6 +10,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [aiSidebarOpen, setAiSidebarOpen] = useState(false);
+  const [localDocContents, setLocalDocContents] = useState([]); // Shared local document data for fallback AI
 
   // Initialize Auth State from localStorage on mount
   useEffect(() => {
@@ -136,7 +137,9 @@ export const AuthProvider = ({ children }) => {
       setAiSidebarOpen, 
       checkEmail,
       requestOTP,
-      verifyOTP
+      verifyOTP,
+      localDocContents,
+      setLocalDocContents
     }}>
       {children}
     </AuthContext.Provider>
