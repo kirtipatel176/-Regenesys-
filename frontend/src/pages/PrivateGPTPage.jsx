@@ -44,7 +44,7 @@ const PrivateGPTPage = () => {
         return parsed.map(c => ({
           ...c,
           createdAt: new Date(c.createdAt),
-          messages: c.messages.map(m => ({ ...m, time: new Date(m.time) }))
+          messages: (c.messages || []).map(m => ({ ...m, time: new Date(m.time) }))
         }));
       } catch (e) {
         console.error("Failed to parse stored chats", e);
@@ -220,7 +220,7 @@ const PrivateGPTPage = () => {
 
     setConversations(prev => prev.map(c => {
       if (c.id === activeConvId) {
-        const updated = { ...c, messages: [...c.messages, userMsg] };
+        const updated = { ...c, messages: [...(c.messages || []), userMsg] };
         if (c.title === 'New Conversation') updated.title = msg.slice(0, 40) + (msg.length > 40 ? '...' : '');
         return updated;
       }
@@ -261,7 +261,7 @@ const PrivateGPTPage = () => {
       followUp: suggestions || []
     };
     
-    setConversations(prev => prev.map(c => c.id === targetConvId ? { ...c, messages: [...c.messages, aiMsg] } : c));
+    setConversations(prev => prev.map(c => c.id === targetConvId ? { ...c, messages: [...(c.messages || []), aiMsg] } : c));
 
     // Stream characters one by one
     let charIndex = 0;
@@ -274,7 +274,7 @@ const PrivateGPTPage = () => {
       // Update the message in conversation
       setConversations(prev => prev.map(c => {
         if (c.id !== targetConvId) return c;
-        return { ...c, messages: c.messages.map(m => m.id === aiMsgId ? { ...m, text: currentText } : m) };
+        return { ...c, messages: (c.messages || []).map(m => m.id === aiMsgId ? { ...m, text: currentText } : m) };
       }));
 
       if (charIndex >= (response?.length || 0)) {
