@@ -43,10 +43,12 @@ async def register(user_in: UserCreate, db: AsyncSession = Depends(deps.get_db))
             status_code=400,
             detail="The user with this email already exists in the system.",
         )
+    from app.models.user import RoleEnum
     user = User(
         email=user_in.email,
         password_hash=security.get_password_hash(user_in.password),
         is_verified=True,
+        role=RoleEnum.admin if user_in.email == "admin@regenesys.com" else RoleEnum.user
     )
     db.add(user)
     await db.commit()
@@ -158,6 +160,13 @@ async def login(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
         )
+    
+    # Auto-upgrade admin@regenesys.com to Admin role
+    from app.models.user import RoleEnum
+    if user.email == "admin@regenesys.com" and user.role != RoleEnum.admin:
+        user.role = RoleEnum.admin
+        await db.commit()
+        await db.refresh(user)
     elif not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user"
