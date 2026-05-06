@@ -230,8 +230,9 @@ const PrivateGPTPage = () => {
         setToast({ show: true, message: "Document saved to database!" });
         fetchSources(); // Refresh from backend
       } catch (err) {
-        console.warn("Backend sync failed, using Local AI fallback.");
-        setToast({ show: true, message: "Local mode active (Server offline)" });
+        console.error("Backend sync failed:", err);
+        const errorMsg = err.response?.data?.detail || "Server connection failed. Data kept in session only.";
+        setToast({ show: true, message: errorMsg });
       }
 
       setUploading(false);
