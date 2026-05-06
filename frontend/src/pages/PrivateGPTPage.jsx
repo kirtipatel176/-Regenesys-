@@ -493,11 +493,11 @@ const PrivateGPTPage = () => {
           </div>
           
           <div className="flex items-center gap-2">
-             {isAdmin && (
-               <button onClick={() => setShowSources(!showSources)} className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-all text-[12px] font-semibold text-gray-500">
-                 <BookOpen size={14} /> Sources ({sources.length})
-               </button>
-             )}
+              {isAdmin && (
+                <button onClick={() => setShowSources(!showSources)} className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-all text-[12px] font-semibold text-gray-500">
+                  <BookOpen size={14} /> Sources ({sources?.length || 0})
+                </button>
+              )}
              {!isAdmin && (
                <button onClick={() => navigate('/')} className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-all text-[12px] font-semibold text-gray-500">
                  <ArrowLeft size={14} /> Website
@@ -659,7 +659,7 @@ const PrivateGPTPage = () => {
                   <div className="flex items-center gap-4 pr-3 pb-2">
                     {isAdmin && (
                       <span className="text-[11px] font-bold text-gray-400 whitespace-nowrap mb-1.5">
-                        {sources.length} sources
+                        {(sources?.length || 0)} sources
                       </span>
                     )}
                     <button
