@@ -341,7 +341,7 @@ const PrivateGPTPage = () => {
 
     // Add placeholder AI message
     const aiMsgId = Date.now().toString();
-    const formattedSources = aiSources ? aiSources.map(s => s.filename) : ['programmes.pdf'];
+    const formattedSources = aiSources ? aiSources.map(s => s.filename) : [];
     const aiMsg = { 
       role: 'ai', 
       text: '', 
@@ -349,7 +349,7 @@ const PrivateGPTPage = () => {
       time: new Date(), 
       id: aiMsgId, 
       streaming: true,
-      followUp: suggestions || []
+      followUp: [] // Fixed ReferenceError: suggestions not defined
     };
     
     setConversations(prev => prev.map(c => c.id === targetConvId ? { ...c, messages: [...(c.messages || []), aiMsg] } : c));
