@@ -10,29 +10,33 @@ export const getFrontendAIResponse = async (query, documents = []) => {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    // Prepare content for Gemini (Query + Document Data)
-    const contents = [
-      {
-        text: `Based strictly on the provided documents, answer this question: ${query}. If the documents don't contain the answer, say so.`
-      }
+    // Prepare content for Gemini
+    const parts = [
+      { text: "You are a helpful AI assistant. Answer the user's question ONLY using the provided document context below. If you cannot find the answer in the documents, state that clearly." }
     ];
 
-    // Add document data as inline parts
+    // Add document data
     for (const doc of documents) {
-      if (doc.base64) {
-        contents.push({
+      if (doc.base64 && (doc.mimeType === "application/pdf")) {
+        parts.push({
           inlineData: {
             data: doc.base64,
-            mimeType: doc.mimeType || "application/pdf"
+            mimeType: doc.mimeType
           }
         });
-      } else if (doc.textContent) {
-        contents.push({ text: `Document content (${doc.name}):\n${doc.textContent}` });
+      }
+      
+      // Always include text content if available as backup
+      if (doc.textContent) {
+        parts.push({ text: `Document Name: ${doc.name}\nContent:\n${doc.textContent}` });
       }
     }
 
+    // Add the user's actual question at the end
+    parts.push({ text: `User Question: ${query}` });
+
     const result = await model.generateContent({
-        contents: [{ role: "user", parts: contents }]
+        contents: [{ role: "user", parts: parts }]
     });
     
     const response = await result.response;
@@ -45,36 +49,6 @@ export const getFrontendAIResponse = async (query, documents = []) => {
     };
   } catch (error) {
     console.error("Frontend AI Error:", error);
-    throw error;
-  }
-};
-
-export async function generateQuiz(docContents, difficulty = 'Medium') {
-  try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-    const prompt = `
-      Based on the following document content, generate a ${difficulty} difficulty quiz.
-      Provide 5 Multiple Choice Questions (MCQs).
-      Return the response strictly as a JSON array of objects.
-      Each object must have:
-      - question: The question text
-      - options: An array of 4 strings
-      - correctAnswer: The exact string from the options that is correct
-      - explanation: A brief explanation why it's correct
-
-      Document Content:
-      ${docContents.map(d => d.content).join("\n\n").slice(0, 10000)}
-    `;
-
-    const result = await model.generateContent(prompt);
-    const text = result.response.text();
-    
-    // Clean JSON from markdown if necessary
-    const jsonStr = text.match(/\[.*\]/s)?.[0] || text;
-    return JSON.parse(jsonStr);
-  } catch (error) {
-    console.error("Quiz Generation Error:", error);
     throw error;
   }
 };

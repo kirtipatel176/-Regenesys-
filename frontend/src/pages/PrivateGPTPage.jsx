@@ -10,12 +10,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { getAIResponse } from '../utils/aiUtils';
-import { 
-  getFrontendAIResponse, 
-  fileToBase64, 
-  fileToText,
-  generateQuiz 
-} from '../utils/frontendAI';
+import { getFrontendAIResponse, fileToBase64, fileToText } from '../utils/frontendAI';
 import api from '../api';
 
 const GeminiIcon = ({ className = "w-5 h-5" }) => (
@@ -124,14 +119,6 @@ const PrivateGPTPage = () => {
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingText, setStreamingText] = useState('');
   const [toast, setToast] = useState({ show: false, message: '' });
-  
-  // Quiz States
-  const [showQuiz, setShowQuiz] = useState(false);
-  const [quizData, setQuizData] = useState(null);
-  const [quizLoading, setQuizLoading] = useState(false);
-  const [quizDifficulty, setQuizDifficulty] = useState('Medium');
-  const [quizResults, setQuizResults] = useState(null);
-
   const [showSources, setShowSources] = useState(isAdmin);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const msgsEndRef = useRef(null);
@@ -176,28 +163,6 @@ const PrivateGPTPage = () => {
     }
   };
 
-  const handleStartQuiz = async () => {
-    if (localDocContents.length === 0) {
-      setToast({ show: true, message: "Please upload a document first to generate a quiz!" });
-      return;
-    }
-    
-    setQuizLoading(true);
-    setShowQuiz(true);
-    setQuizResults(null);
-    
-    try {
-      const data = await generateQuiz(localDocContents, quizDifficulty);
-      setQuizData(data);
-    } catch (error) {
-      console.error("Quiz Error:", error);
-      setToast({ show: true, message: "Failed to generate quiz. Try again." });
-      setShowQuiz(false);
-    } finally {
-      setQuizLoading(false);
-    }
-  };
-
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file || uploading) return;
@@ -219,9 +184,9 @@ const PrivateGPTPage = () => {
       const localDoc = { 
         id: `local-${Date.now()}`, 
         name: file.name, 
-        content: text, 
+        textContent: text, 
         base64: base64,
-        type: file.type || 'application/pdf'
+        mimeType: file.type || 'application/pdf'
       };
 
       setLocalDocContents(prev => [...prev, localDoc]);
@@ -820,18 +785,6 @@ const PrivateGPTPage = () => {
                   ))}
                 </div>
 
-                {/* Quiz Action */}
-                {sources.length > 0 && (
-                  <div className="p-3 border-t border-gray-100">
-                    <button 
-                      onClick={handleStartQuiz}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 bg-regenesys-purple text-white rounded-xl text-[12px] font-bold hover:bg-regenesys-purple/90 transition-all shadow-md"
-                    >
-                      <Sparkles size={14} /> Generate AI Quiz
-                    </button>
-                  </div>
-                )}
-
                 {/* Upload - Admin Only */}
                 <div className="p-3 border-t border-gray-100 shrink-0">
                   {uploading ? (
@@ -922,161 +875,6 @@ const PrivateGPTPage = () => {
                     <Trash2 size={14} /> Delete
                   </button>
                 </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-        )}
-      </AnimatePresence>
-
-      {/* AI Quiz Modal */}
-      <AnimatePresence>
-        {showQuiz && (
-          <div className="fixed inset-0 z-[3000] flex items-center justify-center p-4">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowQuiz(false)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-md"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 30 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 30 }}
-              className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
-            >
-              {/* Modal Header */}
-              <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-regenesys-purple/5 to-transparent">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-regenesys-purple text-white flex items-center justify-center shadow-lg">
-                    <Sparkles size={20} />
-                  </div>
-                  <div>
-                    <h2 className="text-[18px] font-bold text-gray-800">AI Document Quiz</h2>
-                    <p className="text-[11px] text-gray-400">Difficulty: {quizDifficulty}</p>
-                  </div>
-                </div>
-                <button onClick={() => setShowQuiz(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400">
-                  <X size={24} />
-                </button>
-              </div>
-
-              {/* Modal Content */}
-              <div className="p-8 overflow-y-auto flex-1">
-                {quizLoading ? (
-                  <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                    <div className="w-12 h-12 border-4 border-regenesys-purple/20 border-t-regenesys-purple rounded-full animate-spin" />
-                    <p className="text-gray-500 font-medium animate-pulse">Generating questions from your document...</p>
-                  </div>
-                ) : quizData ? (
-                  <div className="space-y-8">
-                    {!quizResults ? (
-                      <>
-                        {quizData.map((q, qIdx) => (
-                          <div key={qIdx} className="space-y-4 p-6 bg-gray-50 rounded-2xl border border-gray-100">
-                            <h3 className="text-[15px] font-bold text-gray-800 flex gap-3">
-                              <span className="text-regenesys-purple">Q{qIdx + 1}.</span> {q.question}
-                            </h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                              {q.options.map((opt, oIdx) => (
-                                <button 
-                                  key={oIdx}
-                                  onClick={() => {
-                                    const radio = document.getElementById(`q${qIdx}-o${oIdx}`);
-                                    if (radio) radio.checked = true;
-                                  }}
-                                  className="flex items-center gap-3 p-4 bg-white border border-gray-200 rounded-xl hover:border-regenesys-purple hover:bg-regenesys-purple/5 transition-all text-left group"
-                                >
-                                  <input 
-                                    type="radio" 
-                                    name={`q${qIdx}`} 
-                                    id={`q${qIdx}-o${oIdx}`}
-                                    value={opt}
-                                    className="w-4 h-4 text-regenesys-purple focus:ring-regenesys-purple cursor-pointer" 
-                                  />
-                                  <span className="text-[13px] text-gray-700 group-hover:text-gray-900">{opt}</span>
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                        <button 
-                          onClick={() => {
-                            let score = 0;
-                            const answers = quizData.map((q, idx) => {
-                              const selected = document.querySelector(`input[name="q${idx}"]:checked`)?.value;
-                              const isCorrect = selected === q.correctAnswer;
-                              if (isCorrect) score++;
-                              return { selected, isCorrect };
-                            });
-                            setQuizResults({ score, total: quizData.length, answers });
-                          }}
-                          className="w-full py-4 bg-regenesys-purple text-white rounded-2xl font-bold text-[16px] shadow-lg hover:bg-regenesys-purple/90 transition-all mt-8"
-                        >
-                          Submit Quiz
-                        </button>
-                      </>
-                    ) : (
-                      <div className="text-center space-y-6 py-4">
-                        <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-regenesys-purple/10 text-regenesys-purple text-[32px] font-bold border-4 border-regenesys-purple/20">
-                          {Math.round((quizResults.score / quizResults.total) * 100)}%
-                        </div>
-                        <div>
-                          <h3 className="text-2xl font-bold text-gray-800">Your Score: {quizResults.score}/{quizResults.total}</h3>
-                          <p className="text-gray-500 mt-1">Excellent work! You've mastered the content.</p>
-                        </div>
-                        
-                        <div className="space-y-4 text-left mt-8">
-                          {quizData.map((q, idx) => (
-                            <div key={idx} className={`p-4 rounded-xl border ${quizResults.answers[idx].isCorrect ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100'}`}>
-                              <p className="text-[14px] font-bold mb-2">{q.question}</p>
-                              <p className="text-[12px]"><span className="font-bold">Correct:</span> {q.correctAnswer}</p>
-                              {!quizResults.answers[idx].isCorrect && (
-                                <p className="text-[12px] text-red-600"><span className="font-bold">You chose:</span> {quizResults.answers[idx].selected || 'No answer'}</p>
-                              )}
-                              <p className="text-[11px] text-gray-500 mt-2 italic">Why: {q.explanation}</p>
-                            </div>
-                          ))}
-                        </div>
-
-                        <button 
-                          onClick={() => setShowQuiz(false)}
-                          className="w-full py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition-all"
-                        >
-                          Close Quiz
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 space-y-6">
-                    <p className="text-gray-600">Choose your difficulty level and let's test your knowledge!</p>
-                    <div className="flex justify-center gap-3">
-                      {['Easy', 'Medium', 'Hard'].map((level) => (
-                        <button 
-                          key={level}
-                          onClick={() => setQuizDifficulty(level)}
-                          className={`px-6 py-3 rounded-2xl text-[14px] font-bold transition-all border-2 ${
-                            quizDifficulty === level 
-                              ? 'bg-regenesys-purple text-white border-regenesys-purple shadow-md' 
-                              : 'bg-white text-gray-600 border-gray-100 hover:border-regenesys-purple/30'
-                          }`}
-                        >
-                          {level}
-                        </button>
-                      ))}
-                    </div>
-                    <button 
-                      onClick={handleStartQuiz}
-                      className="w-full py-4 bg-regenesys-purple text-white rounded-2xl font-bold text-[16px] shadow-xl hover:shadow-regenesys-purple/20 transition-all mt-4"
-                    >
-                      Start Generating Quiz
-                    </button>
-                  </div>
-                )}
               </div>
             </motion.div>
           </div>
