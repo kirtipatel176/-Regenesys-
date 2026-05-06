@@ -184,7 +184,7 @@ const PrivateGPTPage = () => {
     if (!file || uploading) return;
 
     if (sources?.some(s => s.name === file.name)) {
-      setToast({ show: true, message: "This file is already uploaded." });
+      setToast({ show: true, message: "This file is already uploaded locally." });
       e.target.value = '';
       return;
     }
@@ -193,7 +193,7 @@ const PrivateGPTPage = () => {
     setUploadProgress(30);
 
     try {
-      // 1. Process LOCALLY first (Guarantees it works without server)
+      // 1. Process LOCALLY (Browser Storage)
       const base64 = await fileToBase64(file);
       const text = await fileToText(file);
       
@@ -207,7 +207,7 @@ const PrivateGPTPage = () => {
 
       setLocalDocContents(prev => [...prev, localDoc]);
       
-      // Add to visual sources list so user sees it
+      // Add to visual sources list
       const visualDoc = {
         id: localDoc.id,
         name: file.name,
@@ -216,20 +216,7 @@ const PrivateGPTPage = () => {
       };
       setSources(prev => [visualDoc, ...prev]);
 
-      // 2. Try to sync with backend (Background)
-      const formData = new FormData();
-      formData.append('file', file);
-
-      try {
-        await api.post('/documents/upload', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        setToast({ show: true, message: "Document ready!" });
-      } catch (err) {
-        console.warn("Backend offline, using local mode.");
-        setToast({ show: true, message: "Using High-Accuracy Local Mode" });
-      }
-
+      setToast({ show: true, message: "Document saved locally and ready for AI!" });
       setUploading(false);
       e.target.value = '';
     } catch (error) {
@@ -241,12 +228,11 @@ const PrivateGPTPage = () => {
 
   const handleDeleteSource = async (id) => {
     try {
-      await api.delete(`/documents/${id}`);
       setSources(prev => prev.filter(s => s.id !== id));
-      setToast({ show: true, message: "Document deleted." });
+      setLocalDocContents(prev => prev.filter(d => d.id !== id));
+      setToast({ show: true, message: "Source removed locally." });
     } catch (error) {
       console.error("Delete failed:", error);
-      setToast({ show: true, message: "Failed to delete document." });
     }
   };
 
@@ -286,31 +272,21 @@ const PrivateGPTPage = () => {
     setInput('');
     setIsTyping(true);
 
-    // 1. Try Backend RAG first
-    let response, suggestions, sessionId, aiSources;
+    // Frontend ONLY AI Mode
+    let response, aiSources;
     try {
-      const isValidUUID = activeConvId?.length === 36;
-      const backendRes = await getAIResponse(msg, isValidUUID ? activeConvId : null);
-      response = backendRes.text;
-      suggestions = backendRes.suggestions;
-      sessionId = backendRes.sessionId;
-      aiSources = backendRes.sources;
-    } catch (err) {
-      console.warn("Backend AI failed, trying frontend fallback...");
-    }
-
-    // 2. Fallback to Frontend AI if backend failed, returned no sources, or said "No relevant answer"
-    const isNoAnswer = response?.includes("No relevant answer found");
-    const backendFoundNoContext = !aiSources || aiSources.length === 0;
-
-    if ((!response || isNoAnswer || backendFoundNoContext) && localDocContents?.length > 0) {
-      try {
+      if (localDocContents?.length > 0) {
         const frontendRes = await getFrontendAIResponse(msg, localDocContents);
         response = frontendRes.text;
         aiSources = frontendRes.sources?.map(name => ({ filename: name }));
-      } catch (err) {
-        console.error("Frontend fallback also failed:", err);
+      } else {
+        // General AI Response if no documents
+        const frontendRes = await getFrontendAIResponse(msg, []);
+        response = frontendRes.text;
       }
+    } catch (err) {
+      console.error("AI Error:", err);
+      response = "Sorry, I encountered an error processing your request locally.";
     }
     
     setIsTyping(false);
