@@ -65,6 +65,13 @@ const Signup = () => {
     if (result.success) {
       setStep(2);
       setOtpSent(true);
+      
+      // Auto-fill OTP from backend response
+      if (result.data?.otp) {
+        const otpArray = result.data.otp.split('');
+        setOtp(otpArray);
+      }
+
       // Auto-hide success message after 5s
       setTimeout(() => setOtpSent(false), 5000);
     } else {

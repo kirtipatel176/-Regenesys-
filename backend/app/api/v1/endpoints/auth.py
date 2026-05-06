@@ -29,7 +29,7 @@ router = APIRouter()
 
 
 @router.post(
-    "/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED
+    "/register", status_code=status.HTTP_201_CREATED
 )
 async def register(user_in: UserCreate, db: AsyncSession = Depends(deps.get_db)):
     """
@@ -52,11 +52,20 @@ async def register(user_in: UserCreate, db: AsyncSession = Depends(deps.get_db))
     await db.commit()
     await db.refresh(user)
 
-    # Generate and send OTP
+    # Generate and send OTP (Re-enabled with master bypass available)
     otp = await create_and_store_otp(user.email)
-    await send_otp_email(user.email, otp)
+    # await send_otp_email(user.email, otp) # Skipping email for now
 
-    return user
+    return {
+        "id": user.id,
+        "email": user.email,
+        "role": user.role,
+        "is_active": user.is_active,
+        "is_verified": user.is_verified,
+        "created_at": user.created_at,
+        "updated_at": user.updated_at,
+        "otp": otp # Returning OTP to frontend for auto-fill
+    }
 
 
 @router.post("/verify-otp")
@@ -165,11 +174,12 @@ async def login(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user"
         )
-    elif not user.is_verified:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Email not verified. Please check your inbox for the OTP.",
-        )
+    # OTP verification check disabled as requested
+    # elif not user.is_verified and user.email != "vishalpravinbhai6@gmail.com":
+    #     raise HTTPException(
+    #         status_code=status.HTTP_403_FORBIDDEN,
+    #         detail="Email not verified. Please check your inbox for the OTP.",
+    #     )
 
     # Login successful, clear rate limit
     await clear_rate_limit(rate_limit_key)
