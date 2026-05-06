@@ -10,7 +10,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { getAIResponse } from '../utils/aiUtils';
-import { fileToBase64, fileToText } from '../utils/frontendAI';
+import { fileToBase64, fileToText } from '../utils/fileUtils';
 import api from '../api';
 
 const GeminiIcon = ({ className = "w-5 h-5" }) => (

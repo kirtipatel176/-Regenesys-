@@ -3,7 +3,7 @@ import { Sparkles, X, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { getAIResponse } from '../utils/aiUtils';
-import { fileToBase64, fileToText } from '../utils/frontendAI';
+import { fileToBase64, fileToText } from '../utils/fileUtils';
 
 const suggestedQueries = [
   "What programmes?",
