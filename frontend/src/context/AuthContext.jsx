@@ -10,19 +10,12 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [aiSidebarOpen, setAiSidebarOpen] = useState(false);
-  const [localDocContents, setLocalDocContents] = useState(() => {
-    try {
-      const saved = localStorage.getItem('regenesys_local_docs');
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) {
-      return [];
-    }
-  }); 
+  const [localDocContents, setLocalDocContents] = useState([]); 
 
-  // Save local docs whenever they change
+  // Cleanup: Clear heavy docs from storage if they exist from previous sessions
   useEffect(() => {
-    localStorage.setItem('regenesys_local_docs', JSON.stringify(localDocContents));
-  }, [localDocContents]);
+    localStorage.removeItem('regenesys_local_docs');
+  }, []);
 
   // Initialize Auth State from localStorage on mount
   useEffect(() => {
