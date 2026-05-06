@@ -74,7 +74,8 @@ const RightSidebarAI = () => {
         aiResponse = response.text;
         
         // If backend found no context, try frontend fallback if we have docs
-        if ((!aiResponse || aiResponse.includes("unable to connect")) && localDocContents.length > 0) {
+        const isNoAnswer = aiResponse?.includes("No relevant answer found");
+        if ((!aiResponse || isNoAnswer || aiResponse.includes("unable to connect")) && localDocContents.length > 0) {
            throw new Error("No context");
         }
       } catch (e) {

@@ -254,9 +254,11 @@ const PrivateGPTPage = () => {
       console.warn("Backend AI failed, trying frontend fallback...");
     }
 
-    // 2. Fallback to Frontend AI if backend failed or returned no sources and we have local files
+    // 2. Fallback to Frontend AI if backend failed, returned no sources, or said "No relevant answer"
+    const isNoAnswer = response?.includes("No relevant answer found");
     const backendFoundNoContext = !aiSources || aiSources.length === 0;
-    if ((!response || backendFoundNoContext) && localDocContents?.length > 0) {
+
+    if ((!response || isNoAnswer || backendFoundNoContext) && localDocContents?.length > 0) {
       try {
         const frontendRes = await getFrontendAIResponse(msg, localDocContents);
         response = frontendRes.text;
