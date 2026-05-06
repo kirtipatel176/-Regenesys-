@@ -12,6 +12,7 @@ const suggestedQueries = [
 ];
 
 const renderSimpleMarkdown = (t) => {
+  if (!t) return null;
   return t.split('\n').map((line, i) => {
     let rendered = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
     if (line.startsWith('• ')) {

@@ -338,6 +338,7 @@ const PrivateGPTPage = () => {
   };
 
   const renderMarkdown = (text) => {
+    if (!text) return null;
     return text.split('\n').map((line, i) => {
       let rendered = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
       if (line.startsWith('• ')) {
