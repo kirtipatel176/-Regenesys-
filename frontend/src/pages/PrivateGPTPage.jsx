@@ -145,6 +145,22 @@ const PrivateGPTPage = () => {
 
   const handleOpenDocument = async (docId) => {
     try {
+      // 1. Check if we have this document locally (Offline-First)
+      const localDoc = localDocContents?.find(d => d.id === docId);
+      if (localDoc && localDoc.base64) {
+        const byteCharacters = atob(localDoc.base64);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: localDoc.mimeType || 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        return;
+      }
+
+      // 2. Fallback to server if not local
       const token = localStorage.getItem('access_token');
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'}/documents/download/${docId}`, {
         headers: {
@@ -159,7 +175,7 @@ const PrivateGPTPage = () => {
       window.open(url, '_blank');
     } catch (error) {
       console.error("Error opening document:", error);
-      alert("Failed to open document.");
+      alert("Failed to open document. (Server might be offline)");
     }
   };
 
