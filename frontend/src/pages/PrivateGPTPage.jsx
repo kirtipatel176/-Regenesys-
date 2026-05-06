@@ -85,13 +85,13 @@ const PrivateGPTPage = () => {
       fetchSources();
       // Poll for status updates if any document is pending/processing
       const interval = setInterval(() => {
-        if (sources.some(s => s.status === 'pending' || s.status === 'processing')) {
+        if (sources?.some(s => s.status === 'pending' || s.status === 'processing')) {
           fetchSources();
         }
       }, 3000);
       return () => clearInterval(interval);
     }
-  }, [isAdmin, sources.length]); // Re-run if count changes or on mount
+  }, [isAdmin, sources?.length]); // Re-run if count changes or on mount
 
   // Persist conversations to localStorage
   useEffect(() => {
@@ -146,7 +146,7 @@ const PrivateGPTPage = () => {
     const file = e.target.files[0];
     if (!file || uploading) return;
 
-    if (sources.some(s => s.name === file.name)) {
+    if (sources?.some(s => s.name === file.name)) {
       setToast({ show: true, message: "This file is already uploaded." });
       e.target.value = '';
       return;
