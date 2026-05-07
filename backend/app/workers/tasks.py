@@ -18,7 +18,7 @@ import asyncio
 import logging
 from uuid import UUID
 
-from sqlalchemy.future import select
+from sqlalchemy import select
 
 from app.db.session import AsyncSessionLocal
 from app.models.document import Document, ProcessingStatus

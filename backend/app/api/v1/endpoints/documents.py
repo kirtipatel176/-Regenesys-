@@ -15,7 +15,7 @@ from fastapi import (
 )
 from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
+from sqlalchemy import select
 
 from app.api import deps
 from app.core.config import settings
