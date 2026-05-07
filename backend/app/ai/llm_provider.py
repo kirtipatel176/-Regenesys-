@@ -73,8 +73,9 @@ class GeminiProvider(LLMProvider):
     """Google Gemini via the ``google-genai`` SDK."""
 
     def __init__(self):
-        from app.core.config import settings
         from google import genai
+
+        from app.core.config import settings
 
         if not settings.GEMINI_API_KEY:
             raise RuntimeError(
@@ -137,31 +138,79 @@ class BedrockProvider(LLMProvider):
 
     def __init__(self):
         import boto3
+
         from app.core.config import settings
 
-        session_kwargs: Dict[str, Any] = {}
-        if settings.AWS_ACCESS_KEY_ID:
-            session_kwargs["aws_access_key_id"] = settings.AWS_ACCESS_KEY_ID
-        if settings.AWS_SECRET_ACCESS_KEY:
-            session_kwargs["aws_secret_access_key"] = settings.AWS_SECRET_ACCESS_KEY
-        if settings.AWS_REGION:
-            session_kwargs["region_name"] = settings.AWS_REGION
-
-        session = boto3.Session(**session_kwargs)
-        self._client = session.client("bedrock-runtime")
         self._model = settings.LLM_MODEL or "anthropic.claude-3-5-sonnet-20241022-v2:0"
         self._max_tokens = settings.BEDROCK_MAX_TOKENS
-        logger.info(
-            "BedrockProvider initialised (model=%s, region=%s)",
-            self._model,
-            settings.AWS_REGION or "default",
-        )
+        self._api_key = settings.BEDROCK_API_KEY
+        self._region = settings.AWS_REGION or "us-east-1"
+
+        if self._api_key:
+            self._client = None
+            logger.info(
+                "BedrockProvider initialised with API Key (model=%s, region=%s)",
+                self._model,
+                self._region,
+            )
+        else:
+            session_kwargs: Dict[str, Any] = {}
+            if settings.AWS_ACCESS_KEY_ID:
+                session_kwargs["aws_access_key_id"] = settings.AWS_ACCESS_KEY_ID
+            if settings.AWS_SECRET_ACCESS_KEY:
+                session_kwargs["aws_secret_access_key"] = settings.AWS_SECRET_ACCESS_KEY
+            if settings.AWS_REGION:
+                session_kwargs["region_name"] = settings.AWS_REGION
+
+            session = boto3.Session(**session_kwargs)
+            self._client = session.client("bedrock-runtime")
+            logger.info(
+                "BedrockProvider initialised with SigV4 (model=%s, region=%s)",
+                self._model,
+                self._region,
+            )
 
     @property
     def model_name(self) -> str:
         return self._model
 
     def generate(self, prompt: str) -> Dict[str, Any]:
+        if self._api_key:
+            import httpx
+
+            url = f"https://bedrock-runtime.{self._region}.amazonaws.com/model/{self._model}/converse"
+            headers = {
+                "Authorization": f"Bearer {self._api_key}",
+                "Content-Type": "application/json",
+            }
+            payload = {
+                "messages": [{"role": "user", "content": [{"text": prompt}]}],
+                "inferenceConfig": {"maxTokens": self._max_tokens, "temperature": 0.0},
+            }
+            response = httpx.post(url, headers=headers, json=payload, timeout=60.0)
+            response.raise_for_status()
+            data = response.json()
+
+            # Extract text from the response
+            output_message = data.get("output", {}).get("message", {})
+            text_parts = [
+                block["text"]
+                for block in output_message.get("content", [])
+                if "text" in block
+            ]
+            text = "\n".join(text_parts) if text_parts else ""
+
+            # Extract usage
+            usage_meta = data.get("usage", {})
+            usage = None
+            if usage_meta:
+                usage = {
+                    "prompt_tokens": usage_meta.get("inputTokens"),
+                    "candidates_tokens": usage_meta.get("outputTokens"),
+                }
+
+            return {"text": text, "usage": usage, "model": self._model}
+
         response = self._client.converse(
             modelId=self._model,
             messages=[
@@ -199,13 +248,15 @@ class BedrockProvider(LLMProvider):
     async def generate_stream(self, prompt: str) -> AsyncGenerator[str, None]:
         """
         Stream via Bedrock's ``converse_stream`` API.
-
-        Note: boto3 is synchronous.  For production at scale, consider
-        wrapping in ``asyncio.to_thread`` or using ``aioboto3``.  For now,
-        we use ``asyncio.to_thread`` for the initial call and iterate the
-        event stream synchronously (each chunk is tiny, so blocking is
-        negligible).
         """
+        if self._api_key:
+            # For now, if API key is used, we fall back to non-streaming for simplicity
+            # since EventStream parsing is complex.
+            # TODO: Implement binary event-stream parser for httpx
+            res = self.generate(prompt)
+            yield res["text"]
+            return
+
         import asyncio
 
         response = await asyncio.to_thread(
