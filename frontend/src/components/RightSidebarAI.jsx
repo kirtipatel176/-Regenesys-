@@ -40,7 +40,7 @@ const RightSidebarAI = () => {
               <div className="p-7 bg-gradient-to-br from-regenesys-purple to-indigo-800 text-white relative overflow-hidden shrink-0">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl" />
                 <div className="absolute bottom-0 left-0 w-24 h-24 bg-regenesys-gold/10 rounded-full -ml-12 -mb-12 blur-2xl" />
-                
+
                 <div className="flex items-center justify-between relative z-10">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white font-black text-xl shadow-lg">
@@ -54,7 +54,7 @@ const RightSidebarAI = () => {
                       </div>
                     </div>
                   </div>
-                  <button 
+                  <button
                     onClick={() => setAiSidebarOpen(false)}
                     className="p-2 hover:bg-white/10 rounded-xl transition-all hover:scale-110 active:scale-90"
                   >
@@ -64,8 +64,8 @@ const RightSidebarAI = () => {
               </div>
 
               {/* Embedded Vercel Chatbot */}
-              <iframe 
-                src="https://private-gpt-tool.vercel.app/" 
+              <iframe
+                src="https://private-gpt-tool.vercel.app/"
                 className="flex-1 w-full h-full border-none"
                 title="Regenesys PrivateGPT"
                 allow="microphone"
