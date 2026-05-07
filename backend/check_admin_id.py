@@ -1,4 +1,14 @@
 import asyncio
+import os
+import sys
+
+# Add current directory to path so 'app' can be found
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+# Load environment variables before importing app
+from dotenv import load_dotenv
+
+load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 
 from sqlalchemy import select
 
