@@ -40,7 +40,7 @@ async def setup_admin():
             user.role = RoleEnum.admin
             user.is_verified = True
             user.is_active = True
-            user.password_hash = security.get_password_hash("password123") # Resetting to password123 for testing
+            user.password_hash = security.get_password_hash("admin123")
             await db.commit()
             print("✅ Admin user updated successfully.")
 
