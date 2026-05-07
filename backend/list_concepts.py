@@ -1,5 +1,7 @@
 import asyncio
+
 from app.db.neo4j import get_neo4j_session
+
 
 async def list_concepts():
     async with get_neo4j_session() as session:

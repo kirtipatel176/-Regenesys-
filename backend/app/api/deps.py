@@ -1,16 +1,17 @@
 from typing import AsyncGenerator
 
 import jwt
-from app.core.config import settings
-from app.core.security import ALGORITHM
-from app.db.session import AsyncSessionLocal
-from app.models.user import RoleEnum, User
-from app.schemas.token import TokenPayload
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+
+from app.core.config import settings
+from app.core.security import ALGORITHM
+from app.db.session import AsyncSessionLocal
+from app.models.user import RoleEnum, User
+from app.schemas.token import TokenPayload
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/login")
 

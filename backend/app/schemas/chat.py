@@ -2,8 +2,9 @@ from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
 
-from app.models.chat import RoleType
 from pydantic import BaseModel
+
+from app.models.chat import RoleType
 
 
 class ChatSessionResponse(BaseModel):

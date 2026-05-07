@@ -5,10 +5,12 @@ import sys
 # Add current directory to path so 'app' can be found
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from app.db.session import AsyncSessionLocal
-from app.models.user import User, RoleEnum
-from app.core.security import get_password_hash
 from sqlalchemy import select
+
+from app.core.security import get_password_hash
+from app.db.session import AsyncSessionLocal
+from app.models.user import RoleEnum, User
+
 
 async def create_admin():
     async with AsyncSessionLocal() as db:

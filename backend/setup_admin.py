@@ -1,8 +1,11 @@
 import asyncio
-from app.db.session import AsyncSessionLocal
-from app.models.user import User, RoleEnum
-from app.core import security
+
 from sqlalchemy.future import select
+
+from app.core import security
+from app.db.session import AsyncSessionLocal
+from app.models.user import RoleEnum, User
+
 
 async def setup_admin():
     print("Checking for admin user...")

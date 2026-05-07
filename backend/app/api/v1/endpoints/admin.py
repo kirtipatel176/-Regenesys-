@@ -4,6 +4,11 @@ import uuid
 from datetime import datetime, timezone
 from typing import List
 
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import func
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+
 from app.api import deps
 from app.models.audit import AuditLog
 from app.models.chat import ChatSession
@@ -13,10 +18,6 @@ from app.schemas.admin import AdminStatsResponse, UserStatusUpdate
 from app.schemas.document import DocumentResponse
 from app.schemas.user import UserResponse
 from app.services.graph_builder import delete_document_graph
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import func
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
 
 logger = logging.getLogger(__name__)
 

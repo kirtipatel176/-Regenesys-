@@ -1,11 +1,12 @@
 import enum
 import uuid
 
-from app.db.base_class import Base
-from app.models.mixins import TimestampMixin
 from sqlalchemy import Column, Enum, ForeignKey, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import relationship
+
+from app.db.base_class import Base
+from app.models.mixins import TimestampMixin
 
 
 class RoleType(str, enum.Enum):

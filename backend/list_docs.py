@@ -5,9 +5,11 @@ import sys
 # Add current directory to path so 'app' can be found
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+from sqlalchemy import select
+
 from app.db.session import AsyncSessionLocal
 from app.models.document import Document
-from sqlalchemy import select
+
 
 async def list_file_paths():
     async with AsyncSessionLocal() as db:

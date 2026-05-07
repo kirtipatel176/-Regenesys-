@@ -1,5 +1,7 @@
 import asyncio
+
 from app.db.neo4j import get_neo4j_session
+
 
 async def check_user_chunks():
     async with get_neo4j_session() as session:

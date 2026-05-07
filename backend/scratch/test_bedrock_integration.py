@@ -10,9 +10,11 @@ if backend_dir not in sys.path:
 
 # Load environment variables
 from dotenv import load_dotenv
+
 load_dotenv('backend/.env')
 
 from app.ai.llm_provider import get_llm_provider
+
 
 async def test_bedrock():
     try:

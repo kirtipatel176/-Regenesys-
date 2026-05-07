@@ -4,13 +4,6 @@ import shutil
 import uuid
 from typing import List
 
-from app.api import deps
-from app.core.config import settings
-from app.models.document import Document, ProcessingStatus
-from app.models.user import User
-from app.schemas.document import DocumentResponse
-from app.services.graph_builder import delete_document_graph
-from app.workers.tasks import process_document_async
 from fastapi import (
     APIRouter,
     BackgroundTasks,
@@ -23,6 +16,14 @@ from fastapi import (
 from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+
+from app.api import deps
+from app.core.config import settings
+from app.models.document import Document, ProcessingStatus
+from app.models.user import User
+from app.schemas.document import DocumentResponse
+from app.services.graph_builder import delete_document_graph
+from app.workers.tasks import process_document_async
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

@@ -1,6 +1,3 @@
-import sys
-import os
-import subprocess
 
 with open("alembic/versions/xxxx_ai_layer_upgrade.py", "w") as f:
     f.write("""\"\"\"AI layer upgrade

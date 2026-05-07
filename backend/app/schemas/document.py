@@ -2,8 +2,9 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from app.models.document import ProcessingStatus
 from pydantic import BaseModel
+
+from app.models.document import ProcessingStatus
 
 
 class DocumentResponse(BaseModel):

@@ -3,10 +3,11 @@ import re
 
 import fitz  # PyMuPDF
 import tiktoken
-from app.core.config import settings
 from docx import Document as DocxDocument
 from google import genai
 from google.genai import types
+
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 

@@ -1,10 +1,11 @@
 import contextvars
 import uuid
 
-from app.core.redis import check_rate_limit
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
+
+from app.core.redis import check_rate_limit
 
 # Context var for tracking request IDs in structured logs
 request_id_contextvars = contextvars.ContextVar("request_id", default="-")
