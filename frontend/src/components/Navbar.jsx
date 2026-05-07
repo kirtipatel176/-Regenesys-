@@ -44,8 +44,7 @@ const Navbar = ({ onEnrollClick }) => {
   const useWhiteText = !isScrolled && hasDarkHero;
   
   return (
-    <nav className={`fixed left-0 z-[1000] px-6 lg:px-8 xl:px-12 flex items-center transition-all duration-500 
-      ${aiSidebarOpen && user && location.pathname !== '/private-gpt' ? 'right-0 lg:right-[420px]' : 'right-0'}
+    <nav className={`fixed left-0 right-0 z-[1000] px-6 lg:px-8 xl:px-12 flex items-center transition-all duration-500 
       ${isScrolled ? 'top-0 h-16 bg-white shadow-premium-lg border-b border-gray-100' : 'top-[var(--topbar-height)] lg:top-[var(--topbar-height-desktop)] h-20 lg:h-20 bg-transparent'}`}>
       
       <Link to="/" className="flex items-center gap-3">
@@ -87,23 +86,13 @@ const Navbar = ({ onEnrollClick }) => {
 
       <div className="ml-auto flex items-center gap-3">
         {/* AI Assistant Button - Visible for everyone */}
-        {user ? (
-          <button 
-            onClick={() => setAiSidebarOpen(true)}
-            className={`flex items-center justify-center w-10 h-10 rounded-full transition-all ${useWhiteText ? 'bg-white/15 text-white hover:bg-white/25 border border-white/20' : 'bg-regenesys-purple/10 text-regenesys-purple hover:bg-regenesys-purple/20'}`} 
-            title="Open AI Assistant"
-          >
-            <Sparkles size={18} />
-          </button>
-        ) : (
-          <Link 
-            to="/login"
-            className={`flex items-center justify-center w-10 h-10 rounded-full transition-all ${useWhiteText ? 'bg-white/15 text-white hover:bg-white/25 border border-white/20' : 'bg-regenesys-purple/10 text-regenesys-purple hover:bg-regenesys-purple/20'}`} 
-            title="Login to use AI Assistant"
-          >
-            <Sparkles size={18} />
-          </Link>
-        )}
+        <button 
+          onClick={() => setAiSidebarOpen(true)}
+          className={`flex items-center justify-center w-10 h-10 rounded-full transition-all ${useWhiteText ? 'bg-white/15 text-white hover:bg-white/25 border border-white/20' : 'bg-regenesys-purple/10 text-regenesys-purple hover:bg-regenesys-purple/20'}`} 
+          title="Open AI Assistant"
+        >
+          <Sparkles size={18} />
+        </button>
 
         {user?.email === 'admin@regenesys.com' ? (
           <Link to="/private-gpt" className={`hidden md:flex items-center justify-center w-10 h-10 rounded-full transition-all ${useWhiteText ? 'bg-white/15 text-white hover:bg-white/25 border border-white/20' : 'bg-regenesys-purple/10 text-regenesys-purple hover:bg-regenesys-purple/20'}`} title="PrivateGPT Dashboard">
@@ -150,18 +139,12 @@ const Navbar = ({ onEnrollClick }) => {
               <MobileLink to="/success-stories" onClick={() => setIsMobileMenuOpen(false)}>Success Stories</MobileLink>
               <MobileLink to="/contact" onClick={() => setIsMobileMenuOpen(false)}>Contact Us</MobileLink>
               <div className="flex items-center gap-4">
-                {!user ? (
-                  <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white">
-                    <Sparkles size={24} />
-                  </Link>
-                ) : (
-                  <button 
-                    onClick={() => { setIsMobileMenuOpen(false); setAiSidebarOpen(true); }}
-                    className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white"
-                  >
-                    <Sparkles size={24} />
-                  </button>
-                )}
+                <button 
+                  onClick={() => { setIsMobileMenuOpen(false); setAiSidebarOpen(true); }}
+                  className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white"
+                >
+                  <Sparkles size={24} />
+                </button>
                 {!user ? (
                   <MobileLink to="/login" onClick={() => setIsMobileMenuOpen(false)}>Login</MobileLink>
                 ) : (

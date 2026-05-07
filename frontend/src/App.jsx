@@ -81,12 +81,11 @@ const Layout = ({ children }) => {
   const { user, aiSidebarOpen } = useAuth();
   const location = useLocation();
   const isPrivateGPT = location.pathname === '/private-gpt';
-  const showSidebar = user && !isPrivateGPT && aiSidebarOpen;
   
   return (
-    <div className={`transition-all duration-500 ease-in-out ${showSidebar ? 'pr-0 lg:pr-[420px]' : 'pr-0'}`}>
+    <div className="w-full relative">
       {children}
-      {user && !isPrivateGPT && <RightSidebarAI />}
+      {!isPrivateGPT && <RightSidebarAI />}
     </div>
   );
 };
