@@ -3,7 +3,10 @@ import os
 import sys
 
 # Add backend directory to path
-sys.path.append(os.path.join(os.getcwd(), 'backend'))
+current_dir = os.path.dirname(os.path.abspath(__file__))
+backend_dir = os.path.abspath(os.path.join(current_dir, '..'))
+if backend_dir not in sys.path:
+    sys.path.append(backend_dir)
 
 # Load environment variables
 from dotenv import load_dotenv

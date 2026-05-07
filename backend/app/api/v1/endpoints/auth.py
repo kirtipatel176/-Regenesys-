@@ -18,7 +18,7 @@ from app.services.otp_service import create_and_store_otp, send_otp_email, verif
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
+from sqlalchemy import select
 
 router = APIRouter()
 

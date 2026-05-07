@@ -1,7 +1,7 @@
 import asyncio
 from app.db.session import AsyncSessionLocal
 from app.models.user import User
-from sqlalchemy.future import select
+from sqlalchemy import select
 
 async def check_admin_id():
     async with AsyncSessionLocal() as db:
